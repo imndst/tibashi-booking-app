@@ -1,0 +1,96 @@
+/* Container for all rows */
+.tibashi-seat-map {
+  display: flex;
+  flex-direction: column;
+  gap: 1px; /* space between rows */
+  padding: 10px;
+}
+
+/* Each row container */
+.RowContainer {
+  display: flex;
+  /* align-items: center; */
+  justify-content: flex-start;
+  flex-wrap: nowrap; /* keep seats in one line */
+  gap: 4px; /* space between seats */
+  position: relative;
+}
+
+/* Row header at the start */
+.RowHeader, .RowEndHeader {
+  width: 30px;         /* fixed width for headers */
+  text-align: center;
+  font-weight: bold;
+  color: #ffffff;
+  flex-shrink: 0;      /* prevent shrinking */
+}
+
+/* Individual seat */
+.Seat {
+  width: 18px;
+  height: 18px;
+  background-color: #f0f0f0;
+  border-bottom-left-radius: 7px !important;
+    border-bottom-right-radius: 7px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  color: #000000;
+  font-size: 10px;
+  
+}
+
+/* Hover effect */
+.Seat:hover {
+  background-color: #b3d9ff;
+  transform: scale(1.1);
+}
+
+/* Selected seat */
+.Seat.selected {
+  background-color: #4CAF50;
+  color: white;
+}
+
+/* Blank space */
+.BlankSpace {
+  width: 20px; /* default width, can be overridden by inline style */
+  height: 40px; /* same height as seat */
+}
+
+/* Scrollable tab content */
+.tibashi-tab-content.scrollable {
+  max-height: 400px;  /* adjust as needed */
+  overflow-y: auto;
+  padding: 10px;
+}
+
+/* Thin dark scrollbar for desktop */
+@media (min-width: 768px) {
+  .tibashi-tab-content.scrollable::-webkit-scrollbar {
+    width: 6px;
+  }
+  .tibashi-tab-content.scrollable::-webkit-scrollbar-thumb {
+    background-color: #555;
+    border-radius: 3px;
+  }
+  .tibashi-tab-content.scrollable::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+}
+
+/* Optional: make row container scroll horizontally if too wide */
+.scroll-x {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  padding-bottom: 5px;
+}
+
+/* Smooth scrolling */
+.scroll-x, .tibashi-tab-content.scrollable {
+  scroll-behavior: smooth;
+}

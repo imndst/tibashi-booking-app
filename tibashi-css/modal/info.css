@@ -1,0 +1,23 @@
+/* Wrapper for all info + tabs */
+.tibashi-info-wrapper {
+  display: flex;
+  flex-direction: column;
+  max-height: 60vh;
+  background: #1f1f1f;
+  color: #fff;
+  overflow: hidden;
+}
+
+/* Header section (title, genre, age, tabs) */
+.tibashi-info-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #1f1f1f;
+  padding: 10px;
+}
+
+/* Title and text */
+.tibashi-modal-title { font-size: 1.5rem; margin: 0; }
+.tibashi-modal-genre,
+.tibashi-modal-age { margin: 2px 0; font-size: 0.9rem; color: #ccc; }

@@ -1,0 +1,18 @@
+@import "./tibashi-css/tibashi-base.css";
+@import "./tibashi-css/tibashi-hamburger.css";
+@import "./tibashi-css/tibashi-search.css";
+@import "./tibashi-css/tibashi-categories.css";
+@import "./tibashi-css/tibashi-events.css";
+@import "./tibashi-css/tibashi-modal.css";
+@import "./tibashi-css/tibashi-slider.css";
+@import "./tibashi-css/tibashi-box.css";
+@import "./tibashi-css/tibashi-time.css";
+@import "./tibashi-css/tibashi-memo.css";
+@import "./tibashi-css/tibashi-seat.css"
+/*  
+  Tibashi css
+  ----------------------------
+  Simple & easy CSS/JS system created by Ali Imndst
+  for Gishot project.  
+
+*/

@@ -1,0 +1,65 @@
+/*  
+  Tibashi CSS - Base
+  Self-hosted Vazirmatn font
+  Created by Ali Imandoust for Gishot SPA
+*/
+
+/* Variable font (preferred) */
+@font-face {
+  font-family: 'Vazirmatn';
+  src: url('/tibashi-asset/Vazirmatn/Vazirmatn-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900; /* covers thin → black */
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Optional fallback Black */
+@font-face {
+  font-family: 'Vazirmatn';
+  src: url('/tibashi-asset/Vazirmatn/static/Vazirmatn-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Base Typography + Layout */
+.tibashi-body {
+  font-family: 'Vazirmatn', sans-serif;
+  background: #1f1f1f;
+  color: #e0e0e0;
+  padding: 1rem;
+}
+
+.tibashi-container {
+  max-width: 1200px;
+  margin: auto;
+}
+
+.tibashi-title {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 2rem 0;
+}
+
+/* Footer */
+.tibashi-footer {
+  text-align:center;
+  background:#0f172a;
+  color:silver;
+  padding:0.5rem;
+  font-size:0.8rem;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+}
+.tibashi-footer-link {
+  color: silver;
+}
+/* Apply Vazirmatn to all interactive elements */
+button,
+input,
+select,
+textarea {
+  font-family: 'Vazirmatn', sans-serif !important;
+}
