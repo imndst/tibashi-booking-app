@@ -1,105 +1,152 @@
-// seats.js
-import { buildSeatPlan } from './seatDesign.js';
-import { buildControls } from './basketControls.js';
-
-export async function renderSeats(programDataId, tabContent) {
+import { buildSeatPlan } from "./seatDesign.js";
+import { buildControls } from "./basketControls.js";
+import { fetchSeatPlan, fetchSeatStatus, submitTickets } from "./api.js";
+import { initSeatControls } from "./seatControls.js";
+export async function renderSeats(event, tabContent) {
   if (!tabContent) throw new Error("tabContent element required");
+  const { eventId, timeId } = event;
 
   tabContent.innerHTML = `<div class="tibashi-loader">در حال بارگذاری...</div>`;
 
   try {
-    const res = await fetch(`https://localhost:7032/api/Seat/plan/${programDataId}`);
-    const data = await res.json();
-    if (!data.result) throw new Error(data.message || "هیچ صندلی‌ای یافت نشد");
+    const seatPlanData = await fetchSeatPlan(eventId);
+    if (!seatPlanData.result)
+      throw new Error(seatPlanData.message || "هیچ صندلی‌ای یافت نشد");
 
-    // Render controls + seat plan
-    tabContent.innerHTML = buildControls() + buildSeatPlan(data.result);
+    const seatStatusData = await fetchSeatStatus(timeId);
+    const book = (seatStatusData.result?.book || []).map(String);
+    const ipg = (seatStatusData.result?.ipg || []).map(String);
+    const temp = (seatStatusData.result?.temp || []).map(String);
+    const soc = (seatStatusData.result?.soc || []).map(String);
 
-    const selectedSeats = [];
-    const howMuchEl = tabContent.querySelector('#HowMuch');
-    const payBtn = tabContent.querySelector('#payx');
-    const nextBtn = tabContent.querySelector('#nextstage');
+    const programDataId = seatStatusData.result?.hallInfo?.event_id;
+    if (!programDataId)
+      throw new Error("programDataId is required for payment.");
 
-    function updateControls() {
-      const total = selectedSeats.reduce((s, it) => s + it.price, 0);
-      howMuchEl.textContent = `مبلغ: ${total.toLocaleString('fa-IR')} تومان`;
-      payBtn.textContent = `سبد خرید (${selectedSeats.length} بلیت)`;
-      payBtn.disabled = selectedSeats.length === 0;
-    }
+    tabContent.innerHTML =
+      buildControls() +
+      buildSeatPlan(seatPlanData.result, book, ipg, temp, soc);
 
-    // Seat click logic
-    tabContent.querySelectorAll('.Seat').forEach(seatEl => {
-      seatEl.addEventListener('click', () => {
-        const seatNumber = seatEl.dataset.seat;
-        const row = seatEl.dataset.row;
-        const price = parseInt(seatEl.dataset.price, 10);
+    const controls = initSeatControls(tabContent);
 
-        const idx = selectedSeats.findIndex(s => s.seatNumber === seatNumber && s.row === row);
-        if (idx === -1) {
-          seatEl.classList.add('selected');
-          selectedSeats.push({ seatNumber, row, price, element: seatEl });
-        } else {
-          selectedSeats[idx].element.classList.remove('selected');
-          selectedSeats.splice(idx, 1);
-        }
-        updateControls();
-      });
-    });
-
-    // --- PAY BUTTON CLICK ---
-    payBtn.addEventListener('click', async () => {
+    controls.onPay(async (selectedSeats) => {
       if (!selectedSeats.length) return;
 
-      // Transform selectedSeats into API format
+      const phone = prompt("شماره تلفن خود را وارد کنید:");
+      const customerName = prompt("نام مشتری را وارد کنید:");
+      if (!phone || !customerName) {
+        alert("نام و شماره تلفن الزامی است.");
+        return;
+      }
+
+      tabContent.innerHTML = `<div class="tibashi-loader">در حال آماده‌سازی...</div>`;
+
       const payload = {
         ProgramId: programDataId.toString(),
-        ProgramSing: tabContent.dataset.programSing || "1", // set your program sing if needed
-        Phone: prompt("شماره تلفن خود را وارد کنید:"), // or get from input
-        CustomerName: prompt("نام مشتری را وارد کنید:"), // or get from input
-        ProgramDate: new Date().toISOString(), // or your selected date
-        Seats: selectedSeats.map(s => ({
-          SeatId: s.seatNumber,       // unique seat id
-          RowNumber: s.row,           // row display
-          Number: s.seatNumber,       // seat number display
-          Price: s.price
-        }))
+        ProgramSing: programDataId.toString(),
+        pval: timeId.toString(),
+        Phone: phone,
+        CustomerName: customerName,
+        ProgramDate: timeId.toString(),
+        ProgramTimeID: timeId.toString(),
+        Seats: selectedSeats.map((s) => ({
+          SeatId: s.seatNumber.toString(),
+          RowNumber: s.row.toString(),
+          Number: s.seatNumber.toString(),
+          Price: s.price,
+        })),
       };
 
       try {
-        const response = await fetch('https://localhost:7032/api/TempSeat/SubmitTickets', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        const result = await response.json();
-
-        if (result.Status) {
-          alert(`توکن موفق دریافت شد: ${result.Result.mtoken}\nلینک پرداخت: ${result.Result.redirectUrl}`);
-          // optionally redirect: window.location.href = result.Result.redirectUrl;
-        } else {
-          alert(`خطا: ${result.Message}`);
-          console.error(result.Result);
+        const result = await submitTickets(payload);
+        if (!result.status) {
+          alert(result.message || "خطا در ثبت بلیط");
+          tabContent.innerHTML =
+            buildControls() +
+            buildSeatPlan(seatPlanData.result, [], [], [], []);
+          return;
         }
 
+        const token = result.result?.mtoken;
+        if (!token) {
+          alert("توکن دریافت نشد");
+          tabContent.innerHTML =
+            buildControls() +
+            buildSeatPlan(seatPlanData.result, [], [], [], []);
+          return;
+        }
+
+        tabContent.innerHTML = "";
+
+        const modal = document.createElement("div");
+        modal.style.position = "fixed";
+        modal.style.top = 0;
+        modal.style.left = 0;
+        modal.style.width = "100%";
+        modal.style.height = "100%";
+        modal.style.background = "rgba(0,0,0,0.6)";
+        modal.style.display = "flex";
+        modal.style.flexDirection = "column";
+        modal.style.justifyContent = "center";
+        modal.style.alignItems = "center";
+        modal.style.zIndex = "9999";
+        modal.style.fontFamily = "Vazirmat, sans-serif";
+
+        modal.innerHTML = `
+      <div style="background:#fff; padding:20px; border-radius:10px; text-align:center; max-width:400px; position:relative;">
+        <p id="countdownMsg">در حال انتقال به درگاه...</p>
+        <p id="vpnMsg" style="display:none; font-size:12px; color:#333; margin-top:10px;">
+          ممکن است فیلترشکن روشن باشد، لطفا آن را خاموش کنید.
+        </p>
+        <button id="manualRedirect" style="padding:8px 16px; margin-top:10px; display:none;">هدایت به درگاه</button>
+      </div>
+    `;
+        document.body.appendChild(modal);
+
+        const countdownMsg = modal.querySelector("#countdownMsg");
+        const vpnMsg = modal.querySelector("#vpnMsg");
+        const manualBtn = modal.querySelector("#manualRedirect");
+
+        const timeoutId = setTimeout(() => {
+          countdownMsg.style.display = "none";
+          vpnMsg.style.display = "block";
+          manualBtn.style.display = "inline-block";
+        }, 4000);
+
+        manualBtn.onclick = () => {
+          clearTimeout(timeoutId);
+          modal.remove();
+          window.location.href = `https://sep.shaparak.ir/OnlinePG/SendToken?token=${token}`;
+        };
+
+        setTimeout(() => {
+          modal.remove();
+          window.location.href = `https://sep.shaparak.ir/OnlinePG/SendToken?token=${token}`;
+        }, 4000);
+
+        window.onpopstate = () => {
+          modal.remove();
+        };
       } catch (err) {
         console.error(err);
         alert("خطا در ارسال اطلاعات به سرور");
+
+        tabContent.innerHTML =
+          buildControls() + buildSeatPlan(seatPlanData.result, [], [], [], []);
       }
     });
 
-    nextBtn.addEventListener('click', () => {
+    controls.onNext((selectedSeats) => {
       if (!selectedSeats.length) {
         alert("لطفا حداقل یک صندلی انتخاب کنید");
         return;
       }
       console.log("Selected seats:", selectedSeats);
     });
-
-    updateControls();
-
   } catch (err) {
     console.error(err);
     tabContent.innerHTML = `<div class="tibashi-error">خطا در بارگذاری نقشه صندلی‌ها</div>`;
   }
 }
+
+//tibashi build 9/28/2025 a-imndst

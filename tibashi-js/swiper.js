@@ -1,7 +1,8 @@
 let tibashiSlides = [];
 let tibashiCurrentIndex = 0;
 let autoplayTimeout;
-
+import { fetchSlides } from './utils/api.js';
+import { BASE_URL } from './utils/constants.js';
 export async function initTibashiSlider() {
   const container = document.getElementById('swiperContainer');
   if (!container) return;
@@ -15,19 +16,14 @@ export async function initTibashiSlider() {
   const prevButton = container.querySelector('.tibashi-slider-prev');
 
   try {
-    const res = await fetch('https://localhost:7032/api/slides/Slides');
-    if (!res.ok) throw new Error('خطا در دریافت داده‌ها');
-
-    const data = await res.json();
-    tibashiSlides = data.result || [];
-
-    tibashiSlides.forEach((slide, idx) => {
+     tibashiSlides = await fetchSlides();
+     tibashiSlides.forEach((slide, idx) => {
       const div = document.createElement('div');
       div.classList.add('tibashi-slide');
       if (idx === 0) div.classList.add('active');
       div.dataset.id = slide.id;
       div.innerHTML = `
-        <img src="https://gishot.ir/${slide.imgDesk}" alt="Slide ${idx + 1}">
+        <img src="${BASE_URL}/${slide.imgDesk}" alt="Slide ${idx + 1}">
         <div class="tibashi-slide-name">Slide ${idx + 1}</div>
       `;
       div.addEventListener('click', () => openSlideModal(slide.id));
@@ -45,19 +41,15 @@ export async function initTibashiSlider() {
     console.error(err);
   }
 }
-
 function slideLeft() {
   const slides = document.querySelectorAll('.tibashi-slide');
   const total = tibashiSlides.length;
   if (!total) return;
-
   const currentSlide = slides[tibashiCurrentIndex];
   const nextIndex = (tibashiCurrentIndex + 1) % total;
   const nextSlide = slides[nextIndex];
-
   currentSlide.classList.remove('active');
   currentSlide.classList.add('prev');
-
   nextSlide.classList.add('active');
   nextSlide.style.left = '100%';
   requestAnimationFrame(() => {
@@ -70,7 +62,7 @@ function slideLeft() {
     currentSlide.style.transform = 'translateX(0)';
     nextSlide.style.transform = 'translateX(0)';
     tibashiCurrentIndex = nextIndex;
-  }, 4000); // keep original timing
+  }, 2000); 
 }
 
 function slideLeftX() {
@@ -123,7 +115,7 @@ function openSlideModal(id) {
   if (!modal || !body) return;
 
   body.innerHTML = `
-    <img src="https://gishot.ir/${slide.imgDesk}" class="tibashi-modal-img">
+    <img src="${BASE_URL}${slide.imgDesk}" class="tibashi-modal-img">
     <div class="tibashi-modal-info">
       <h2 class="tibashi-modal-title">Slide ${tibashiSlides.indexOf(slide) + 1}</h2>
     </div>

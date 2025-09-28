@@ -1,5 +1,7 @@
+import { ENDPOINTS } from '../utils/api.js';
+import { BASE_URL } from '../utils/constants.js';
 export default class Profiles {
-  constructor(containerId, apiEndpoint) {
+  constructor(containerId, apiEndpoint = ENDPOINTS.profiles) {
     this.container = document.getElementById(containerId);
     this.apiEndpoint = apiEndpoint;
     this.loaded = false; // prevent multiple fetches
@@ -9,19 +11,24 @@ export default class Profiles {
   initObserver() {
     if (!this.container) return;
 
-    // Initially show loader
-    this.container.innerHTML = `<div class="tibashi-loader">در حال بارگذاری...</div>`;
+    // Show initial loader
+    this.container.innerHTML = `
+      <div class="tibashi-loader-wrapper">
+        <div class="tibashi-loader"></div>
+        <p class="tibashi-loading-text">در حال بارگذاری اعضا...</p>
+      </div>
+    `;
 
-    // Observe when the top of the container enters viewport
+    // Lazy load when visible
     const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (entry.isIntersecting && !this.loaded) {
-          this.loaded = true; // mark as loaded
-          observer.disconnect(); // stop observing
+          this.loaded = true;
+          observer.disconnect();
           this.fetchData();
         }
       });
-    }, { threshold: 0 });
+    }, { threshold: 0.1 });
 
     observer.observe(this.container);
   }
@@ -29,33 +36,48 @@ export default class Profiles {
   async fetchData() {
     try {
       const res = await fetch(this.apiEndpoint);
-      if (!res.ok) throw new Error("خطا در دریافت داده‌ها");
+      if (!res.ok) throw new Error(`HTTP ${res.status} دریافت داده‌ها ناموفق بود`);
+
       const data = await res.json();
 
-      // Check API response standard {status, message, result}
+      // Expect {status, message, result: []}
       if (!data.status || !Array.isArray(data.result)) {
-        throw new Error("داده‌ها معتبر نیستند");
+        throw new Error(data.message || 'داده‌ها معتبر نیستند');
       }
 
       this.render(data.result);
     } catch (err) {
       console.error(err);
-      this.container.innerHTML = `<div class="tibashi-error">خطا در دریافت داده‌ها</div>`;
+      this.container.innerHTML = `
+        <div class="tibashi-error">
+          ⚠️ خطا در دریافت داده‌ها: ${err.message}
+        </div>
+      `;
     }
   }
 
   render(profiles) {
-    if (!this.container || !Array.isArray(profiles)) return;
+    if (!this.container || !Array.isArray(profiles) || !profiles.length) {
+      this.container.innerHTML = `<p class="tibashi-no-data">هیچ عضوی یافت نشد.</p>`;
+      return;
+    }
+
+    const gridHtml = profiles.map(p => `
+      <div class="tibashi-profile-card" title="${p.name}">
+        <img 
+          src="${p.name ? `${BASE_URL}${p.avatar}` : ''}" 
+          alt="${p.name}" 
+          class="tibashi-profile-img"
+          onerror="this.onerror=null; this.src='${BASE_URL}${p.src}'"
+        >
+        <div class="tibashi-profile-name">${p.name}</div>
+      </div>
+    `).join('');
 
     this.container.innerHTML = `
       <h2 class="tibashi-profiles-title">👤 Gishot Members</h2>
       <div class="tibashi-profiles-grid">
-        ${profiles.map(p => `
-          <div class="tibashi-profile-card" title="${p.name}">
-            <img src="${p.avatar || 'https://via.placeholder.com/150'}" alt="${p.name}" class="tibashi-profile-img">
-            <div class="tibashi-profile-name">${p.name}</div>
-          </div>
-        `).join('')}
+        ${gridHtml}
       </div>
     `;
   }

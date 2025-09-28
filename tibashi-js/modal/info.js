@@ -1,13 +1,13 @@
+import { fetchActorDetails } from "../utils/api.js";
 export async function renderInfo(ev, tabContent) {
   tabContent.innerHTML = `<div class="tibashi-loader"></div>`;
   try {
-    const res = await fetch(`https://localhost:7032/api/Actores/GetActorDetails/${ev.id}`);
-    const data = await res.json();
-    if (!data.status) throw new Error(data.message || "هیچ رکوردی یافت نشد");
+    const data = await fetchActorDetails(ev.id);
+    if (!data) throw new Error("هیچ رکوردی یافت نشد");
 
     tabContent.innerHTML = `
       <div class="tibashi-info-content">
-        ${data.result.details || '<p>اطلاعات موجود نیست</p>'}
+        ${data.details || '<p>اطلاعات موجود نیست</p>'}
       </div>
     `;
   } catch (err) {

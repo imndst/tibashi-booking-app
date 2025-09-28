@@ -1,3 +1,6 @@
+// tibashi-js/modal/time.js
+import { ENDPOINTS } from '../utils/api.js';
+
 export async function renderTimes(ev, tabContent) {
   tabContent.innerHTML = `<div class="tibashi-loader"></div>`;
 
@@ -15,16 +18,16 @@ export async function renderTimes(ev, tabContent) {
   }
 
   try {
-    // Fetch times from API
-    const res = await fetch(`https://localhost:7032/api/Time/GetTimes/${ev.id}`);
+    // Fetch times
+    const res = await fetch(ENDPOINTS.times(ev.id));
     const data = await res.json();
     if (!data.status) throw new Error(data.message || "داده نامعتبر است");
-    const times = data.result.times; // extract times array from API
+    const times = data.result.times;
 
-    // Fetch capacity if needed
+    // Fetch capacity
     let capMap = {};
     if (times.some(t => t.tag !== 33 && t.tag !== 66)) {
-      const capRes = await fetch(`https://localhost:7032/api/Capacity/GetCapacity/${ev.id}`);
+      const capRes = await fetch(ENDPOINTS.capacity(ev.id));
       const capData = await capRes.json();
       if (capData.result) capData.result.forEach(c => capMap[c.sansId] = c);
     }
@@ -47,19 +50,35 @@ export async function renderTimes(ev, tabContent) {
         <div class="tibashi-progress-bar">
           <div class="tibashi-progress-fill" style="width:${fullness}%"></div>
         </div>
-        <button class="tibashi-sans-btn" ${soldOut ? "disabled" : ""}  data-event-id="${s.events}" data-time-id="${s.id}">خرید</button>
+        <button class="tibashi-sans-btn" ${soldOut ? "disabled" : ""} data-event-id="${s.events}" data-time-id="${s.id}">خرید</button>
       `;
       scrollContainer.appendChild(div);
     });
 
-    // Add click event for each "خرید" button
+    // Add click event for "خرید" buttons
     document.querySelectorAll('.tibashi-sans-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
         if (btn.disabled) return;
-        const selectedId = btn.getAttribute('data-event-id');
+        const eventId = btn.getAttribute('data-event-id');
+        const timeId = btn.getAttribute('data-time-id');
+        const event = { eventId, timeId };
+        window.history.pushState({ timeId }, "", `/b/${timeId}`);
         const { renderSeats } = await import('./seat/seats.js');
-        await renderSeats(selectedId, tabContent);
+        await renderSeats(event, document.getElementById('tabContent'));
       });
+    });
+
+    // Handle back/forward
+    window.addEventListener('popstate', async () => {
+      const pathMatch = window.location.pathname.match(/^\/b\/(\d+)$/);
+      const { renderSeats } = await import('./seat/seats.js');
+      if (pathMatch) {
+        const timeId = pathMatch[1];
+        // You may want to fetch eventId again or pass proper event object
+        await renderSeats(null, document.getElementById('tabContent'));
+      } else {
+        // Fallback: render default tab or close modal
+      }
     });
 
   } catch (err) {
