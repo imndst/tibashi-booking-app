@@ -1,3 +1,4 @@
+// server.js
 const express = require("express");
 const path = require("path");
 
@@ -7,7 +8,8 @@ const PORT = 3000;
 // مسیر ریشه پروژه
 const __root = path.resolve(__dirname);
 
-
+// برای خواندن داده‌های POST فرم
+app.use(express.urlencoded({ extended: true }));
 
 // سرو کردن همه فایل‌های استاتیک
 app.use(express.static(__root));
@@ -17,12 +19,29 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__root, "index.html"));
 });
 
-// مسیر مخصوص رویدادها
-app.get("/e/:id", (req, res) => {
-  res.sendFile(path.join(__root, "index.html"));
+// GET تیکت با ResNum
+app.get("/ticket", (req, res) => {
+  res.sendFile(path.join(__root, "ticket/index.html"));
 });
 
-// SPA fallback (تمام مسیرهای دیگر) بدون استفاده از /* یا *
+// POST تیکت (simulate gateway callback)
+app.post("/ticket", (req, res) => {
+  const { ResNum, RefNum, Amount, Status } = req.body;
+
+  // Build the redirect URL with multiple query parameters
+  const redirectUrl = `/ticket?` + new URLSearchParams({
+    ResNum,
+    RefNum,
+    Amount,
+    Status
+  }).toString();
+
+  // Redirect the user to the ticket page with all parameters
+  res.redirect(redirectUrl);
+});
+
+
+// مسیرهای دیگر SPA fallback
 app.use((req, res) => {
   res.sendFile(path.join(__root, "index.html"));
 });

@@ -1,6 +1,7 @@
 // seat/api.js
-export const API_BASE = 'https://bdcast.gishot.ir/api';
 
+// const API_BASE = "https://bdcast.gishot.ir/api";
+const API_BASE = "https://localhost:7032/api";
 export async function fetchSeatPlan(eventId) {
   const res = await fetch(`${API_BASE}/Seat/plan/${eventId}`);
   return res.json();

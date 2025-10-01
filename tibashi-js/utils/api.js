@@ -1,5 +1,6 @@
 // tibashi-js/utils/api.js
-const API_BASE = "https://bdcast.gishot.ir/api";
+// const API_BASE = "https://bdcast.gishot.ir/api";
+const API_BASE = "https://localhost:7032/api";
 
 export const ENDPOINTS = {
   slides: `${API_BASE}/slides/Slides`,
@@ -52,16 +53,57 @@ export async function fetchEvents() {
   }
 }
 
-export async function fetchComments(eventId, page = 1) {
-  try {
-    const res = await fetch(ENDPOINTS.comments(eventId, page));
-    if (!res.ok) throw new Error("خطا در دریافت نظرات");
-    const data = await res.json();
-    return data.result || { comments: [] };
-  } catch (err) {
-    console.error(err);
-    return { comments: [] };
-  }
+export async function fetchComments(programId, page = 1) {
+  const res = await fetch(
+    `${API_BASE}/comments/GetComments/${programId}?page=${page}`
+  );
+  const data = await res.json();
+  return data.result;
+}
+
+export async function postComment(programId, comment, rating) {
+  const token = localStorage.getItem("jwt_token");
+  const res = await fetch(`${API_BASE}/comments/AddComment`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ programId, comment, rating }),
+  });
+  return res.json();
+}
+
+export async function editComment(commentId, comment) {
+  const token = localStorage.getItem("jwt_token");
+  const res = await fetch(`${API_BASE}/comments/EditComment/${commentId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ comment }),
+  });
+  return res.json();
+}
+
+export async function replyComment(programId, parentCommentId, comment) {
+  const token = localStorage.getItem("jwt_token");
+  const res = await fetch(`${API_BASE}/comments/AddComment`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      programId,
+      comment,
+      parentId: parentCommentId,
+      rating:5
+
+    }),
+  });
+  return res.json();
 }
 
 export async function fetchProfiles() {

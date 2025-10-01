@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment Result</title>
+<style>
+    /* ----- Reset & base ----- */
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: #f5f7fa; display: flex; justify-content: center; align-items: center; height: 100vh; }
+
+    /* ----- Card ----- */
+    .card {
+        background: #fff;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        text-align: center;
+        max-width: 400px;
+        width: 90%;
+    }
+
+    /* ----- Result styles ----- */
+    .success { color: #28a745; }
+    .failure { color: #dc3545; }
+
+    .icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+
+    h1 { margin-bottom: 1rem; }
+    p { margin-bottom: 2rem; color: #555; }
+
+    button {
+        padding: 0.8rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        background: #007bff;
+        color: #fff;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    button:hover { background: #0056b3; }
+
+</style>
+</head>
+<body>
+
+<div class="card">
+    <div id="icon" class="icon">⚠️</div>
+    <h1 id="status">پرداخت ناموفق</h1>
+    <p id="message">پرداخت شما انجام نشد. لطفا دوباره تلاش کنید.</p>
+    <button id="ticketBtn" style="display:none;">مشاهده بلیط</button>
+</div>
+
+<script>
+    // Get query params from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const resNum = urlParams.get('ResNum');
+    const error = urlParams.get('Error');
+
+    const icon = document.getElementById('icon');
+    const status = document.getElementById('status');
+    const message = document.getElementById('message');
+    const ticketBtn = document.getElementById('ticketBtn');
+
+    if (resNum) {
+        // Payment Success
+        icon.textContent = "✅";
+        status.textContent = "پرداخت با موفقیت انجام شد!";
+        message.textContent = "بلیط شما آماده است.";
+        ticketBtn.style.display = "inline-block";
+        ticketBtn.onclick = () => {
+            window.location.href = `/ticket/?res=${encodeURIComponent(resNum)}`;
+        }
+    } else if (error) {
+        // Payment Failed
+        icon.textContent = "❌";
+        status.textContent = "پرداخت ناموفق";
+        switch(error) {
+            case "PaymentCancelled":
+                message.textContent = "پرداخت توسط کاربر لغو شد.";
+                break;
+            case "DuplicateTransaction":
+                message.textContent = "این تراکنش قبلاً ثبت شده است.";
+                break;
+            case "OrderNotFound":
+                message.textContent = "سفارش یافت نشد.";
+                break;
+            case "SeatSaveFailed":
+                message.textContent = "خطا در ذخیره اطلاعات صندلی‌ها.";
+                break;
+            case "VerifyFailed":
+                message.textContent = "خطا در تایید تراکنش با درگاه.";
+                break;
+            case "AmountMismatch":
+                message.textContent = "مبلغ پرداختی مطابقت ندارد.";
+                break;
+            case "FinalSaveFailed":
+                message.textContent = "خطا در ذخیره نهایی اطلاعات.";
+                break;
+            default:
+                message.textContent = "پرداخت انجام نشد. لطفا دوباره تلاش کنید.";
+        }
+    } else {
+        // No parameters
+        message.textContent = "اطلاعات تراکنش نامشخص است.";
+    }
+</script>
+
+</body>
+</html>

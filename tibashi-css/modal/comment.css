@@ -1,0 +1,168 @@
+/* 🔹 Reply Button */
+.tibashi-reply-btn {
+  background: linear-gradient(135deg, #4e54c8, #8f94fb);
+  color: #fff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(78, 84, 200, 0.25);
+}
+.tibashi-reply-btn:hover {
+  background: linear-gradient(135deg, #8f94fb, #4e54c8);
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 16px rgba(78, 84, 200, 0.35);
+}
+.tibashi-reply-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(78, 84, 200, 0.2);
+}
+
+/* 🔹 Reply Box Container */
+.tibashi-reply-box-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2 cards per row */
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* 🔹 Individual Reply Card */
+.tibashi-reply-card {
+  background-color: #2a2a2a;
+  color: #fff;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 0.85em;
+  border-left: 2px solid #ccc;
+}
+
+/* 🔹 Reply Input Wrapper (for new reply) */
+.tibashi-reply-input-wrapper {
+  grid-column: 1 / -1; /* full width of grid */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 5px;
+}
+.tibashi-reply-input {
+  flex: 1;
+  background-color: #2a2a2a;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  resize: none;
+}
+.tibashi-submit-reply {
+  background: #900837;
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.tibashi-submit-reply:hover {
+  background: #0077cc;
+}
+
+/* 🔹 Comment Box */
+.tibashi-comment-box {
+  position: relative;
+  background: #121212;
+  border: 1px solid #2c2c2c;
+  border-radius: 25px;
+  padding: 10px 15px 40px;
+  margin-bottom: 20px;
+  transition: border 0.2s ease;
+}
+.tibashi-comment-box:focus-within {
+  border-color: #0095f6;
+}
+.tibashi-comment-box textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  font-size: 14px;
+  color: #fff;
+  line-height: 1.6;
+  padding: 8px 50px 8px 10px;
+  box-sizing: border-box;
+}
+.tibashi-comment-box textarea::placeholder {
+  color: #aaa;
+  font-size: 14px;
+}
+#submitComment {
+  position: absolute;
+  right: 10px;
+  bottom: 45px;
+  background: #0095f6;
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+#submitComment:hover {
+  background: #0077cc;
+}
+
+/* 🔹 Rating Stars */
+.tibashi-rating-stars {
+  position: absolute;
+  bottom: 10px;
+  left: 15px;
+  display: flex;
+  gap: 5px;
+}
+.tibashi-rating-stars .star {
+  font-size: 20px;
+  cursor: pointer;
+  color: #555;
+  transition: color 0.2s, transform 0.1s;
+}
+.tibashi-rating-stars .star:hover,
+.tibashi-rating-stars .star.active {
+  color: #ffb400;
+  transform: scale(1.1);
+}
+
+/* 🔹 Comment Cards */
+.tibashi-comment-card {
+  border: 1px dashed #fbfbfb4d;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  background-color: #1f1f1f;
+  margin-top: 10px;
+}
+.tibashi-comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9em;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+.tibashi-comment-text {
+  font-size: 0.95em;
+  margin: 5px 0;
+}
+.tibashi-comment-rating {
+  font-size: 0.85em;
+  color: #f5a623;
+  margin-left: 10px;
+}

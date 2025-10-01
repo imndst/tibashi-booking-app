@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تیوال - گیشات</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body{font-family:'Vazirmatn',sans-serif;background:#1f1f1f;color:#e0e0e0;padding-bottom:16rem}
+.modal{display:none;position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.7);align-items:center;justify-content:center}
+.modal-content{background:#111;border-radius:1rem;max-width:900px;width:95%;overflow:hidden;color:#fff;position:relative}
+.scroll-x{display:flex;overflow-x:auto;gap:1rem;padding:.5rem;user-select:none}
+.scroll-x::-webkit-scrollbar{height:6px}
+.scroll-x::-webkit-scrollbar-thumb{background:#333;border-radius:3px}
+footer{position:fixed;bottom:0;left:0;right:0;background:#0f172a;color:silver;text-align:center;padding:.5rem;font-size:.6rem}
+.loader{border:4px solid #111;border-top:4px solid #3b82f6;border-radius:50%;width:36px;height:36px;animation:spin 1s linear infinite;margin:auto}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.close-btn{position:absolute;top:.5rem;left:.5rem;background:#ef4444;color:#fff;border:none;border-radius:.5rem;padding:.25rem .5rem;cursor:pointer;font-size:.8rem}
+.shine{position:relative;display:inline-block;overflow:hidden}
+.shine::before{content:'';position:absolute;top:0;left:-75%;width:50%;height:100%;background:linear-gradient(120deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-25deg);animation:shine 3s}
+@keyframes shine{0%{left:-75%}100%{left:125%}}
+.active-cat{border:2px solid #3b82f6;animation:catShine 1.5s ease-in-out}
+@keyframes catShine{0%,100%{box-shadow:0 0 0 #3b82f6}50%{box-shadow:0 0 10px #3b82f6}}
+.event-time{user-select:none}
+</style>
+</head>
+<body class="p-4">
+<div id="a-imndst-container" class="max-w-5xl mx-auto">
+<h1 class="text-xl font-bold text-center mt-16 mb-16">Tiwall Gishot V2</h1>
+<div id="a-imndst-categories" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+<div id="a-imndst-events" class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8"></div>
+</div>
+
+<div id="a-imndst-eventModal" class="modal">
+  <div class="modal-content">
+    <button id="a-imndst-closeEventModal" class="close-btn">بستن</button>
+    <div id="a-imndst-eventBody"></div>
+  </div>
+</div>
+
+<div id="a-imndst-seatmapModal" class="modal">
+  <div class="modal-content p-4">
+    <button id="a-imndst-closeSeatmap" class="close-btn">بستن</button>
+    <h2 id="a-imndst-seatmapTitle" class="text-lg font-bold mb-1"></h2>
+    <p id="a-imndst-seatmapSub" class="text-sm text-gray-400 mb-4"></p>
+    <div id="a-imndst-seatmapCanvasWrap" style="max-height:500px; overflow:hidden; position:relative;">
+      <canvas id="seatmapCanvas"></canvas>
+    </div>
+    <div id="a-imndst-selectedSeats" class="mt-3 text-sm"></div>
+  </div>
+</div>
+
+<footer>
+<svg xmlns="http://www.w3.org/2000/svg" width="90" height="20" viewBox="0 0 200 40"><text x="0" y="25" fill="silver" font-size="20">A.I Ali Imandoust</text></svg><br>
+<a href="#" class="text-silver">A.I a imndst@gishot</a>
+</footer>
+
+<script>
+const cats=document.getElementById('a-imndst-categories'),
+      evs=document.getElementById('a-imndst-events'),
+      eventModal=document.getElementById('a-imndst-eventModal'),
+      eventBody=document.getElementById('a-imndst-eventBody'),
+      seatmapModal=document.getElementById('a-imndst-seatmapModal'),
+      seatmapTitle=document.getElementById('a-imndst-seatmapTitle'),
+      seatmapSub=document.getElementById('a-imndst-seatmapSub'),
+      seatmapCanvasWrap=document.getElementById('a-imndst-seatmapCanvasWrap'),
+      selectedSeatsBox=document.getElementById('a-imndst-selectedSeats'),
+      canvas=document.getElementById('seatmapCanvas'),
+      ctx=canvas.getContext('2d');
+
+let selectedSeats=[], currentCat=null, seatsData=[], scale=1, offsetX=0, offsetY=0, isDragging=false, dragStart={x:0,y:0};
+const seatWidth=30, seatHeight=30, seatGap=8, rowGap=15;
+
+// Simple fetch helper
+async function fetchJson(u){return await (await fetch(u)).json()}
+
+// Load categories
+async function loadCats(){
+  let d=await fetchJson('https://store.zirbana.com/v2/pages/categories?mode=ticket_store');
+  if(!d.ok)return;
+  cats.innerHTML='';
+  d.data.forEach((c,i)=>{
+    let el=document.createElement('div');
+    el.className='p-3 rounded-xl text-center font-bold cursor-pointer shadow-lg transition transform hover:scale-105 bg-blue-700 hover:bg-blue-800 text-white';
+    el.innerHTML=`<span>${c.text}</span>`;
+    el.onclick=()=>selectCategory(c.key,el);
+    cats.appendChild(el);
+    if(i===0)selectCategory(c.key,el)
+  })
+}
+
+// Select category
+async function selectCategory(k,el){
+  document.querySelectorAll('#a-imndst-categories div').forEach(x=>x.classList.remove('active-cat'));
+  el.classList.add('active-cat');currentCat=k;await loadEvents(k)
+}
+
+// Load events
+async function loadEvents(k){
+  evs.innerHTML='<div class="col-span-full text-center py-12"><div class="loader"></div><p class="mt-2 text-gray-400">در حال بارگذاری...</p></div>';
+  let d=await fetchJson(`https://store.zirbana.com/v2/pages/list?cat=${k}`);
+  if(!d.ok)return;
+  evs.innerHTML='';
+  d.data.forEach(ev=>{
+    let card=document.createElement('div');
+    card.className='bg-gray-800 rounded-lg shadow p-3 cursor-pointer hover:shadow-xl transition shine';
+    card.innerHTML=`<img src="${ev.image.thumb_url}" class="w-full h-40 object-cover rounded"><h3 class='mt-2 font-bold text-white'>${ev.title}</h3><div class='event-time text-sm mt-1 text-gray-400'>${ev.spec?.date_duration_text||''}</div>`;
+    card.onclick=()=>openEvent(ev);
+    evs.appendChild(card)
+  })
+}
+
+// Open event modal
+async function openEvent(ev){
+  eventBody.innerHTML=`<img src='${ev.image.normal_url}' class='w-full h-56 object-cover'><div class='p-4'><h2 class='text-xl font-bold mb-2'>${ev.title_prefix||''} ${ev.title}</h2><p class='text-gray-400 mb-4'>${ev.short_desc||''}</p><div id='a-imndst-sansList' class='scroll-x'></div></div>`;
+  eventModal.style.display='flex';
+  let d=await fetchJson(`https://store.zirbana.com/v2/${ev.urn}/instances`);
+  if(!d.ok)return;
+  const sansList=document.getElementById('a-imndst-sansList');
+  sansList.innerHTML='';
+  d.data.forEach((inst)=>{
+    let s=document.createElement('div');
+    s.className='min-w-[180px] bg-gray-700 rounded p-3 select-none';
+    s.innerHTML=`<div class='font-bold mb-1 text-white'>${inst.title}</div><div class='text-sm mb-2 text-gray-300'>${inst.remained_text}</div><button class='bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded'>خرید</button>`;
+    s.querySelector('button').onclick=()=>openSeatmap(ev,inst);
+    sansList.appendChild(s)
+  })
+}
+
+// Open seatmap
+async function openSeatmap(ev, inst){
+  selectedSeats=[];
+  seatmapTitle.textContent = ev.title;
+  seatmapSub.textContent = inst.title;
+  seatmapCanvasWrap.style.cursor='grab';
+  seatmapModal.style.display='flex';
+  canvas.width=seatmapCanvasWrap.clientWidth;
+  canvas.height=500;
+
+  // Replace this with your dynamic API fetch
+  let d = await fetchJson(`https://store.zirbana.com/v2/sampleevent/seatmap?instance_id=${76174}&format=json&_auth=94:111f6f5bc87948bd47abf82c6b382d1c&&_dev=0`);
+  if(!d.ok) return;
+
+  seatsData=[];
+  d.data.sections.forEach(sec=>{
+    sec.blocks.forEach(block=>{
+      block.rows.forEach(row=>{
+        row.seats.forEach(seat=>{
+          seatsData.push({
+            x: seat[2],
+            y: seat[1],
+            width: seatWidth,
+            height: seatHeight,
+            free: seat[7]>0,
+            id: seat[4],
+            seatNumber: seat[5],
+            rowNumber: row.row_number
+          });
+        });
+      });
+    });
+  });
+
+  draw();
+}
+
+// Draw seats on canvas
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.save();
+  ctx.setTransform(scale,0,0,scale,offsetX,offsetY);
+
+  let lastRow=-1;
+  seatsData.forEach(seat=>{
+    if(seat.rowNumber!==lastRow){
+      ctx.fillStyle="#aaa";
+      ctx.font="bold 14px Vazirmatn, sans-serif";
+      ctx.fillText(`ردیف ${seat.rowNumber}`, seat.x-40, seat.y+seat.height/1.5);
+      lastRow = seat.rowNumber;
+    }
+    ctx.fillStyle = seat.free ? "#34d399" : "#f87171";
+    if(selectedSeats.includes(seat.id)) ctx.fillStyle="#3b82f6";
+    ctx.roundRect(seat.x, seat.y, seat.width, seat.height, 6);
+    ctx.fill();
+
+    ctx.fillStyle="#fff";
+    ctx.font="bold 12px Vazirmatn, sans-serif";
+    ctx.textAlign="center";
+    ctx.textBaseline="middle";
+    ctx.fillText(seat.seatNumber, seat.x+seat.width/2, seat.y+seat.height/2);
+  });
+
+  ctx.restore();
+  selectedSeatsBox.textContent = 'صندلی‌های انتخاب شده: ' + (selectedSeats.join(', ') || 'هیچ');
+}
+
+// Add roundRect support
+CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){
+  if(w<2*r) r=w/2;
+  if(h<2*r) r=h/2;
+  this.beginPath();
+  this.moveTo(x+r,y);
+  this.arcTo(x+w,y,x+w,y+h,r);
+  this.arcTo(x+w,y+h,x,y+h,r);
+  this.arcTo(x,y+h,x,y,r);
+  this.arcTo(x,y,x+w,y,r);
+  this.closePath();
+  return this;
+}
+
+// Seat selection
+canvas.addEventListener('click', e=>{
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX-rect.left-offsetX)/scale;
+  const y = (e.clientY-rect.top-offsetY)/scale;
+  seatsData.forEach(seat=>{
+    if(x>=seat.x && x<=seat.x+seat.width && y>=seat.y && y<=seat.y+seat.height && seat.free){
+      if(selectedSeats.includes(seat.id)){
+        selectedSeats=selectedSeats.filter(id=>id!==seat.id);
+      } else selectedSeats.push(seat.id);
+      draw();
+    }
+  });
+});
+
+// Zoom
+canvas.addEventListener('wheel', e=>{
+  e.preventDefault();
+  const zoomAmount = -e.deltaY*0.001;
+  const mouseX = e.offsetX;
+  const mouseY = e.offsetY;
+  offsetX -= mouseX;
+  offsetY -= mouseY;
+  scale *= (1+zoomAmount);
+  offsetX += mouseX;
+  offsetY += mouseY;
+  draw();
+});
+
+// Pan
+canvas.addEventListener('mousedown', e=>{
+  isDragging = true;
+  dragStart.x = e.clientX - offsetX;
+  dragStart.y = e.clientY - offsetY;
+  canvas.style.cursor='grabbing';
+});
+canvas.addEventListener('mouseup', e=>{ isDragging=false; canvas.style.cursor='grab'; });
+canvas.addEventListener('mouseleave', e=>{ isDragging=false; canvas.style.cursor='grab'; });
+canvas.addEventListener('mousemove', e=>{
+  if(isDragging){
+    offsetX = e.clientX - dragStart.x;
+    offsetY = e.clientY - dragStart.y;
+    draw();
+  }
+});
+
+// Close modals
+document.getElementById('a-imndst-closeSeatmap').onclick=()=>seatmapModal.style.display='none';
+document.getElementById('a-imndst-closeEventModal').onclick=()=>eventModal.style.display='none';
+
+// Init
+loadCats();
+</script>
+</body>
+</html>

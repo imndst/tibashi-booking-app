@@ -1,0 +1,213 @@
+
+<!doctype html>
+<html lang="fa">
+<head>
+  <meta charset="utf-8" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+  <style>
+    body{font-family:Tahoma,Arial;background:#f6f8fb;color:#222;padding:20px}
+    .card{background:#fff;border-radius:10px;box-shadow:0 6px 18px rgba(20,30,50,0.06);padding:18px;margin-bottom:16px}
+    textarea,input,select,button{width:100%;box-sizing:border-box;padding:8px;margin-top:6px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    label{font-weight:600}
+    pre{white-space:pre-wrap;word-break:break-word;background:#f1f5f9;padding:10px;border-radius:6px}
+    .center{grid-column:1/-1}
+    @media(max-width:800px){.row{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <h2>to compressed</h2>
+  <div class="card">
+    <label>
+   در هر خط 
+   ابتدا شماره مشتری
+   فاصله
+   شماره سفارش
+<br/>
+   شماره سفارش میتونه
+ ایدی سانس+
+ ایدی سیت+
+ ایدی ایونت باشه+
+
+ این رشته نیز به ضورت افلاین
+ است
+
+
+    </label>
+    <textarea id="rawInput" rows="8" placeholder="126174 5653
+   
+      "></textarea>
+    <div class="row">
+      <div>
+        <label>عبارت عبور (passphrase)</label>
+        <input id="passphrase" type="password" placeholder="عبارت عبور برای مثل moon-ali-javad-kian" />
+      </div>
+      <div>
+        <label>فشرده‌سازی</label>
+        <select id="compressLevel">
+          <option value="9">zlib level 9 - > max</option>
+          <option value="6">level 6 </option>
+          <option value="1">level 1 (سریغتر)</option>
+          <option value="0">بدون فشرده‌سازی</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:10px">
+      <button id="makeTokenBtn">تولید توکن</button>
+    </div>
+    <label style="margin-top:10px">توکن تولیدشده</label>
+    <pre id="tokenOut">(توکن اینجا نمایش داده میشه)</pre>
+  </div>
+
+  <div class="card">
+    <label>2) جستجوی صندلی: از روی توکن + شناسه مشتری</label>
+    <input id="tokenIn" placeholder="توکن را اینجا پیست کنید" />
+    <div class="row">
+      <div>
+        <label>عبارت عبور (همون که موقع تولید استفاده شد)</label>
+        <input id="passphraseIn" type="password" />
+      </div>
+      <div>
+        <label>شناسه مشتری برای جستجو</label>
+        <input id="customerIdQuery" placeholder="مثال: 3853165" />
+      </div>
+    </div>
+    <div style="margin-top:10px">
+      <button id="lookupBtn">جستجو</button>
+    </div>
+    <label style="margin-top:10px">نتیجه</label>
+    <pre id="lookupOut">(نتیجه جستجو)</pre>
+  </div>
+
+  <div class="card " style="direction: rtl;">
+    <label>></label>
+    <ul>
+      <li>این پیاده‌سازی از <strong>pako</strong> برای فشرده‌سازی zlib در مرورگر استفاده می‌کند.</li>
+      <li>کلید با SHA-256 از عبارت عبور تولید می‌شود و سپس با عملیات XOR ساده روی بایت‌های فشرده‌شده اعمال می‌گردد.</li>
+    </ul>
+  </div>
+
+  <script>
+    function utf8ToBytes(str){return new TextEncoder().encode(str)}
+    function bytesToUtf8(b){return new TextDecoder().decode(b)}
+
+    async function sha256Bytes(dataBytes){
+      const hash = await crypto.subtle.digest('SHA-256', dataBytes);
+      return new Uint8Array(hash);
+    }
+
+    function xorBytes(data, key){
+      const out = new Uint8Array(data.length);
+      for(let i=0;i<data.length;i++) out[i] = data[i] ^ key[i % key.length];
+      return out;
+    }
+
+    function base64UrlEncode(bytes){
+      let binary = '';
+      const len = bytes.byteLength;
+      for (let i = 0; i < len; i++) binary += String.fromCharCode(bytes[i]);
+      return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+    }
+    function base64UrlDecode(s){
+      s = s.replace(/-/g, '+').replace(/_/g, '/');
+      while(s.length % 4) s += '=';
+      const binary = atob(s);
+      const out = new Uint8Array(binary.length);
+      for(let i=0;i<binary.length;i++) out[i] = binary.charCodeAt(i);
+      return out;
+    }
+
+    function parseRawToMapping(rawText){
+      const lines = rawText.split(/\r?\n/);
+      const m = {};
+      for(const line of lines){
+        const t = line.trim(); if(!t) continue;
+        const parts = t.split(/\s+/);
+        if(parts.length < 2) continue;
+        const cid = parts[0];
+        const seat = parseInt(parts[1],10);
+        if(Number.isNaN(seat)) continue;
+        if(!m[cid]) m[cid]=[];
+        m[cid].push(seat);
+      }
+      for(const k in m){
+        m[k] = Array.from(new Set(m[k])).sort((a,b)=>a-b);
+      }
+      return m;
+    }
+
+    async function makeTokenFromMapping(mapping, passphrase, compressLevel){
+      const json = JSON.stringify(mapping);
+      const utf8 = utf8ToBytes(json);
+      let compressed;
+      if(compressLevel === 0){
+        compressed = utf8;
+      } else {
+        compressed = pako.deflate(utf8, {level: compressLevel});
+      }
+      const key = await sha256Bytes(utf8ToBytes(passphrase));
+      const encrypted = xorBytes(compressed, key);
+      return base64UrlEncode(encrypted);
+    }
+
+    async function decryptTokenToMapping(token, passphrase){
+      try{
+        const data = base64UrlDecode(token);
+        const key = await sha256Bytes(utf8ToBytes(passphrase));
+        const decrypted = xorBytes(data, key);
+        try{
+          const inflated = pako.inflate(decrypted);
+          const json = bytesToUtf8(inflated);
+          return JSON.parse(json);
+        } catch(e){
+        
+          try{
+            const json = bytesToUtf8(decrypted);
+            return JSON.parse(json);
+          } catch(e2){
+            throw new Error('دیکشنری قابل بازیابی نیست یا عبارت عبور اشتباه است.');
+          }
+        }
+      } catch(err){
+        throw err;
+      }
+    }
+
+    document.getElementById('makeTokenBtn').addEventListener('click', async ()=>{
+      const raw = document.getElementById('rawInput').value;
+      const pass = document.getElementById('passphrase').value || '';
+      const level = parseInt(document.getElementById('compressLevel').value,10);
+      const mapping = parseRawToMapping(raw);
+      if(Object.keys(mapping).length===0){
+        alert('هیچ ورودی معتبری پیدا نشد. لطفاً لیست را بررسی کنید.');
+        return;
+      }
+      try{
+        const token = await makeTokenFromMapping(mapping, pass, level === 0 ? 0 : level);
+        document.getElementById('tokenOut').textContent = token;
+        document.getElementById('tokenIn').value = token;
+        document.getElementById('passphraseIn').value = pass;
+      } catch(e){
+        alert('خطا در تولید توکن: '+e.message);
+      }
+    });
+
+    document.getElementById('lookupBtn').addEventListener('click', async ()=>{
+      const token = document.getElementById('tokenIn').value.trim();
+      const pass = document.getElementById('passphraseIn').value || '';
+      const cid = document.getElementById('customerIdQuery').value.trim();
+      if(!token){ alert('توکن را وارد کنید'); return; }
+      if(!cid){ alert('شناسه مشتری را وارد کنید'); return; }
+      try{
+        const mapping = await decryptTokenToMapping(token, pass);
+        const seats = mapping[cid];
+        document.getElementById('lookupOut').textContent = seats ? JSON.stringify(seats) : '(یافت نشد)';
+      } catch(e){
+        document.getElementById('lookupOut').textContent = 'خطا: '+e.message;
+      }
+    });
+
+  </script>
+</body>
+imndst 2025/0.1/19
+</html>

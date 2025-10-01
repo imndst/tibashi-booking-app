@@ -2,36 +2,37 @@
 <html lang="fa">
 <head>
 <meta charset="UTF-8">
-<meta name="robots" content="noindex, nofollow, noarchive, noimageindex">
-<meta name="googlebot" content="noindex, nofollow">
-<meta name="bingbot" content="noindex, nofollow">
-<meta http-equiv="Cache-Control" content="no-store">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 <link rel="stylesheet" href="./ticket.css">
+<title>بلیط شما</title>
 </head>
 <body>
 
-<div class="search">
-  <input type="text" id="ticketId" placeholder="شماره پیگیری">
-  <button id="loadTicket">نمایش بلیط‌ها</button>
+<div class="actions">
   <button id="downloadPDF">دانلود PDF</button>
 </div>
 
 <div id="tickets"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://new.gishot.ir/cnd/qrcode.min.js"></script>
+<script src="https://new.gishot.ir/cnd/JsBarcode.all.min.js"></script>
+<script src="https://new.gishot.ir/cnd/html2pdf.bundle.min.js"></script>
 <script type="module">
 import { renderTickets, downloadTicketsPDF } from './ticketRenderer.js';
 
-document.getElementById("loadTicket").addEventListener("click", () => {
-  const id = document.getElementById("ticketId").value.trim();
-  renderTickets(id);
-});
+// Read ticket number from query string
+const params = new URLSearchParams(window.location.search);
+const resNum = params.get("res"); // <-- use "res" instead of "Status"
+
+console.log(resNum);
+
+if (resNum) {
+  renderTickets(resNum); // Pass the res number to renderTickets
+} else {
+  document.getElementById("tickets").innerHTML = "<p style='color:red'>❌ شماره پیگیری یافت نشد.</p>";
+}
+
+// PDF download button
 document.getElementById("downloadPDF").addEventListener("click", downloadTicketsPDF);
 </script>
 

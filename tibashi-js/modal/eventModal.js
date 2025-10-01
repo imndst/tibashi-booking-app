@@ -80,7 +80,7 @@ export async function openEvent(ev) {
           <button class="tibashi-tab-btn" data-tab="comments">نظرات</button>
         </div>
       </div>
-      <div id="tabContent" class="tibashi-tab-content scrollable"></div>
+      <div id="tabContent" class="tibashi-tab-contento scrollable"></div>
     </div>
   `;
 
