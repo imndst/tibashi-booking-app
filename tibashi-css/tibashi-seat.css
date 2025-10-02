@@ -1,16 +1,108 @@
-/* Ensure the tab content container is scrollable */
-#tabContent.scrollable {
-  width: 100%;           /* full width of parent */
-  max-width: 1000px;     /* optional max width */
-  height: 500px;         /* set desired height */
-  overflow: auto;        /* enables scroll when content exceeds */
-  border: 1px solid #ccc; /* optional for visualization */
+/* Container for all rows */
+
+
+.Stage{background-color:#3F51B5!important;
+      border-radius:8px;
+      min-width:400px;
+      }
+
+.tibashi-seat-map {
+  background-color: #29313b;
+  align-items:center;
+  position:relative;
+}
+.RowContainer{
+  max-height:22px;
 }
 
-/* Make canvas behave naturally inside scrollable container */
-#tabContent canvas {
-  display: block;        /* removes inline spacing */
-  /* canvas width/height can exceed container */
-  min-width: 100%;
-  min-height: 100%;
+.RowHeader{
+  font-size:0.725rem;
+}
+.RowEndHeader{
+  font-size:0.725rem;
+}
+
+.Seat {
+  width: 18px;
+  height: 18px;
+  background-color: #e5e5e5; /* default available seat */
+  border-bottom-left-radius: 7px !important;
+  border-bottom-right-radius: 7px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  color: #000;
+  font-size: 10px;
+  line-height:12px;
+  min-width:18px;
+  max-height:16px;
+  border-radius: 3px;
+   font-size: 81%;
+    user-select: none;
+}
+
+.Seat.selected {
+  background-color: #4CAF50;
+  color: #fff;
+  cursor: pointer;
+}
+
+
+.Seat.Book {
+  background-color: rgba(255, 14, 14, 0.9) !important;
+  color: #fff;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Temporarily reserved / PTA */
+.Seat.Temp {
+  background-color: gray !important;
+  color: #fff;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Special seat type IPG */
+.Seat.Ipg {
+  background-color: rgb(21, 36, 243) !important;
+  color: #fff;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Special seat type SOC */
+.Seat.Soc {
+  background-color: rgb(175, 111, 16) !important;
+  color: #fff;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Blank space between seats */
+.BlankSpace {
+  width: 20px;
+  height: 40px;
+}
+
+
+/* Scrollbar for desktop */
+@media (min-width: 768px) {
+
+}
+
+/* Horizontal scroll for wide rows */
+.scroll-x {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  padding-bottom: 5px;
+}
+
+/* Smooth scrolling */
+.scroll-x, .tibashi-tab-content.scrollable {
+  scroll-behavior: smooth;
 }
