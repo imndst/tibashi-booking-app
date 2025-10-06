@@ -1,4 +1,4 @@
-import { fetchActorDetails } from "../utils/api.js";
+import { fetchActorDetails } from "../../utils.js";
 export async function renderInfo(ev, tabContent) {
   tabContent.innerHTML = `<div class="tibashi-loader"></div>`;
   try {

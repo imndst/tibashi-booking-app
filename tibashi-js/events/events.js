@@ -1,11 +1,10 @@
-import { openEvent } from "./modal/eventModal.js"; // modal logic
-import { fetchEvents } from './utils/api.js';
-import { BASE_URL } from "./utils/constants.js";
+import { fetchEvents, BASE_URL } from '../../utils.js';
+
 
 let allEvents = [];
 let filteredEvents = [];
 let activeCategory = "همه";
-let currentEventId = null; // ذخیره ID رویدادی که باز شده
+
 
 export async function initEvents() {
   const eventsContainer = document.getElementById("eventsContainer");
@@ -26,7 +25,6 @@ export async function initEvents() {
     filterEvents();
 
     // Handle initial URL if /e/:id
-    handleUrlEvent(window.location.pathname);
   } catch (err) {
     console.error(err);
     eventsContainer.innerHTML = `<div class="tibashi-error">خطا در دریافت داده‌ها</div>`;
@@ -35,11 +33,7 @@ export async function initEvents() {
   // Search
   searchInput.addEventListener("input", filterEvents);
 
-  // Listen to popstate for Back/Forward navigation
-  window.addEventListener("popstate", () => {
-    handleUrlEvent(window.location.pathname, true);
-  });
-
+ 
   // -------------------------
   // Categories
   // -------------------------
@@ -70,9 +64,7 @@ export async function initEvents() {
     });
   }
 
-  // -------------------------
-  // Filtering
-  // -------------------------
+ 
   function filterEvents() {
     const query = searchInput.value.toLowerCase();
 
@@ -99,55 +91,24 @@ export async function initEvents() {
       return;
     }
 
-    events.forEach((ev) => {
-      const card = document.createElement("div");
-      card.className = "tibashi-event-card tibashi-shine";
-      card.innerHTML = `
-        <img src="${BASE_URL}${ev.src}" alt="${
-        ev.name
-      }" class="tibashi-event-img">
-        <h3 class="tibashi-event-name">${ev.name}</h3>
-        <div class="tibashi-event-location">${ev.location}</div>
-        <div class="tibashi-event-rate">${
-          ev.rate && ev.rate !== "0" ? "⭐ " + ev.rate : ""
-        }</div>
-      `;
-      card.onclick = () => openEventWithHistory(ev);
-      eventsContainer.appendChild(card);
-    });
+   events.forEach((ev) => {
+  const card = document.createElement("a");
+  card.href = `e/${ev.id}`;
+  card.className = "tibashi-event-card tibashi-shine";
+  card.innerHTML = `
+    <img src="${BASE_URL}${ev.src}" alt="${ev.name}" class="tibashi-event-img">
+    <h3 class="tibashi-event-name">${ev.name}</h3>
+    <div class="tibashi-event-location">${ev.location}</div>
+    <div class="tibashi-event-rate">
+      ${ev.rate && ev.rate !== "0" ? "⭐ " + ev.rate : ""}
+    </div>
+  `;
+  eventsContainer.appendChild(card);
+});
+
   }
 
-  // -------------------------
-  // History & Modal Handling
-  // -------------------------
-  function openEventWithHistory(ev) {
-    currentEventId = ev.id;
-    openEvent(ev); // باز کردن modal
-    // Push state to History
-    window.history.pushState({ eventId: ev.id }, "", `/e/${ev.id}`);
-  }
+ 
 
-  function handleUrlEvent(path, isPop = false) {
-    const match = path.match(/^\/e\/(\d+)$/);
-    if (match) {
-      const eventId = parseInt(match[1]);
-      const ev = allEvents.find((e) => e.id === eventId);
-      if (ev) {
-        if (!isPop || currentEventId !== eventId) {
-          currentEventId = eventId;
-          openEvent(ev);
-        }
-      } else {
-        // اگر ID پیدا نشد، به صفحه اصلی برگرد
-        if (currentEventId) console.log("s");
-        currentEventId = null;
-        window.history.replaceState({}, "", "/");
-      }
-    } else {
-      // اگر مسیر /e/:id نبود، modal بسته شود
-      if (currentEventId) console.log("s");
-      currentEventId = null;
-      if (!isPop) window.history.replaceState({}, "", "/");
-    }
-  }
+  
 }

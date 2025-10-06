@@ -1,73 +1,24 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="fa">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>گیشات</title>
-<link rel="stylesheet" href="/css/app.css?v=ceeaba66" />
+   
+  <meta charset="UTF-8">
+  <title>SPA Router Example</title>
+  <link rel="stylesheet" href="/app.css" />
+
 </head>
-<body class="tibashi-body">
-
-<!-- Hamburger -->
-<div id="hamburger" class="tibashi-hamburger">
-  <div></div>
-  <div></div>
-  <div></div>
-</div>
-<div id="menu" class="tibashi-menu">
-  <div id="toggleTheme" class="tibashi-theme-toggle">
-    <div class="tibashi-toggle-thumb"></div>
-  </div>
-</div>
-
-<div id="app" class="tibashi-container">
-  <h1 class="tibashi-title">TIBASHI - GISHOT</h1>
-
-  <!-- Slider -->
-  <div id="swiperContainer"></div>
-
-  <!-- Search bar -->
-  <div class="tibashi-search-wrapper">
-    <input id="searchInput" type="text" placeholder="جستجو بر اساس نام، مکان یا دسته" class="tibashi-search-input">
-  </div>
-
-  <!-- Category menu under search -->
-  <nav id="categoriesNav" class="tibashi-categories-nav"></nav>
-
-  <!-- Events grid -->
-  <div id="eventsContainer" class="tibashi-events-grid"></div>
-</div>
-
-<!-- Event Modal -->
-<div id="eventModal" class="tibashi-modal">
-  <div class="tibashi-modal-content">
-    <button id="closeEventModal" class="tibashi-close-btn">بستن</button>
-    <div id="eventBody"></div>
-  </div>
-</div>
-
-
-<!-- Box Office Component -->
-<div id="boxOfficeContainer" class="tibashi-box-office mt-4"></div>
-
-
-<div id="profilesContainer" class="tibashi-profiles mt-4"></div>
-
-
-<footer class="tibashi-footer">
-  <svg xmlns="http://www.w3.org/2000/svg" width="90" height="20" viewBox="0 0 200 40">
-    <text x="0" y="25" fill="silver" font-size="20">A.I ali imandoust</text>
-  </svg><br>
-  <a href="#" class="tibashi-footer-link">A.I a imndst@gishot</a>
-</footer>
-
-
-<script type="module" src="/tibashi-js/main.js?v=f3b4a832"></script>
+<body>
+  <nav>
+    <a href="/" data-link>خانه</a>
+    <a href="/product/42" data-link>محصول 42</a>
+    <a href="/account/pay" data-link>پرداخت</a>
+    <a href="/search?q=laptop" data-link>جستجو</a>
+    <a href="/notfound" data-link>صفحه اشتباه</a>
+  </nav>
+  
+  <div id="app"></div>
+  
+<script type="module" src="/main.js"></script>
 
 </body>
 </html>
-
-
-
-
-<!-- crated by tibashi liberary in gishot platform  -->

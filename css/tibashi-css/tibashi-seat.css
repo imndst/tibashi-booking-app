@@ -106,3 +106,21 @@
 .scroll-x, .tibashi-tab-content.scrollable {
   scroll-behavior: smooth;
 }
+
+.SeatDisabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.tibashi-filter-active {
+  background: #333;
+  color: #fff;
+}
+
+.price-filter-btn {
+  border: 1px solid #aaa;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #eee;
+}

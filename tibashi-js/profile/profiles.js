@@ -1,5 +1,4 @@
-import { ENDPOINTS } from '../utils/api.js';
-import { BASE_URL } from '../utils/constants.js';
+import { ENDPOINTS ,BASE_URL } from '../../utils.js'
 export default class Profiles {
   constructor(containerId, apiEndpoint = ENDPOINTS.profiles) {
     this.container = document.getElementById(containerId);
@@ -10,7 +9,6 @@ export default class Profiles {
 
   initObserver() {
     if (!this.container) return;
-
     // Show initial loader
     this.container.innerHTML = `
       <div class="tibashi-loader-wrapper">
@@ -18,7 +16,6 @@ export default class Profiles {
         <p class="tibashi-loading-text">در حال بارگذاری اعضا...</p>
       </div>
     `;
-
     // Lazy load when visible
     const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => {

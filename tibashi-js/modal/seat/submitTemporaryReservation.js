@@ -1,6 +1,6 @@
 // seat/submitTemporaryReservation.js
 import { createReservationPayload } from './createReservationPayload.js';
-import { submitTickets } from './api.js';
+import { submitTickets } from '../../../utils.js';
 
 export async function submitTemporaryReservation(selectedSeats, programId, timeId) {
   if (!selectedSeats.length) {

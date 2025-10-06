@@ -1,5 +1,5 @@
 // tibashi-js/modal/time.js
-import { ENDPOINTS } from '../utils/api.js';
+import { ENDPOINTS } from '../../utils.js';
 
 export async function renderTimes(ev, tabContent) {
   tabContent.innerHTML = `<div class="tibashi-loader"></div>`;
@@ -63,23 +63,13 @@ export async function renderTimes(ev, tabContent) {
         const timeId = btn.getAttribute('data-time-id');
         const event = { eventId, timeId };
         window.history.pushState({ timeId }, "", `/b/${timeId}`);
-        const { renderSeats } = await import('./seat/seats.js');
-        await renderSeats(event, document.getElementById('tabContent'));
+        const { renderSeats } = await import('../modal/seat/SeatMap.js');
+        await renderSeats(event, eventId);
       });
     });
 
     // Handle back/forward
-    window.addEventListener('popstate', async () => {
-      const pathMatch = window.location.pathname.match(/^\/b\/(\d+)$/);
-      const { renderSeats } = await import('./seat/seats.js');
-      if (pathMatch) {
-        const timeId = pathMatch[1];
-        // You may want to fetch eventId again or pass proper event object
-        await renderSeats(null, document.getElementById('tabContent'));
-      } else {
-        // Fallback: render default tab or close modal
-      }
-    });
+   
 
   } catch (err) {
     tabContent.innerHTML = `<div class="tibashi-error">خطا در بارگذاری زمان‌ها</div>`;
