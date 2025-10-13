@@ -10,7 +10,7 @@ const routes = [
     view: async () => {
       // Create home content container
       document.getElementById("app").innerHTML = `
-        <section>
+        <section class="main">
           <div id="swiperContainer" class="tibashi-slider-container"></div>
           <div id="eventsSection">
             <nav id="categoriesNav" class="tibashi-categories"></nav>
@@ -42,7 +42,7 @@ const routes = [
   path: /^\/b\/(\d+)$/, 
   view: async (params) => {
     const timeId = params[1];        
-    const app = document.getElementById("app");
+    const app = document.getElementById("seat-map-continer");
     app.innerHTML = `<div class="tibashi-loader">در حال بارگذاری...</div>`;
     await renderSeats({ timeId }, app);
   },

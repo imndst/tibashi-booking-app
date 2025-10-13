@@ -1,7 +1,7 @@
 // tibashi-js/utils/api.js
-// const API_BASE = "https://bdcast.gishot.ir/api";
-const API_BASE = "https://localhost:7032/api";
-export const BASE_URL =  "https://new.gishot.ir/";
+const API_BASE = "https://bdcast.gishot.ir/api";
+// const API_BASE = "https://localhost:7032/api";
+export const BASE_URL =  "https://gishot.ir/";
 
 export const ENDPOINTS = {
   slides: `${API_BASE}/slides/Slides`,
@@ -9,6 +9,7 @@ export const ENDPOINTS = {
   events: `${API_BASE}/events/Events`,
   boxOffice: `${API_BASE}/Box/BoxOffice`,
   profiles: `${API_BASE}/Profiles/Profiles`,
+checkDiscount:`${API_BASE}/Discounts/CheckDiscountCode`,
   comments: (eventId, page = 1) =>
     `${API_BASE}/Comments/GetComments/${eventId}?page=${page}`,
   times: (eventId) => `${API_BASE}/Time/GetTimes/${eventId}`,
@@ -17,6 +18,24 @@ export const ENDPOINTS = {
   e: (eventId) => `${API_BASE}/events/event/${eventId}`,
 };
 
+
+export async function checkDiscountCode(programId, discountCode) {
+  try {
+    const res = await fetch(ENDPOINTS.checkDiscount, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ProgramId: programId, DiscountCode: discountCode })
+    });
+
+    if (!res.ok) throw new Error("خطا در بررسی کد تخفیف");
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error(err);
+    return { status: false, message: "خطا در بررسی کد تخفیف" };
+  }
+}
 export async function fetchSlides() {
   try {
     const res = await fetch(ENDPOINTS.slides);

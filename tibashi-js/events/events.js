@@ -1,39 +1,31 @@
 import { fetchEvents, BASE_URL } from '../../utils.js';
-
+import { showLoader, hideLoader } from '../loader-spin/loaders.js';
+import { EventComponent } from './e.js'; // SPA route component
 
 let allEvents = [];
 let filteredEvents = [];
 let activeCategory = "همه";
 
-
 export async function initEvents() {
-  const eventsContainer = document.getElementById("eventsContainer");
+ 
   const searchInput = document.getElementById("searchInput");
   const categoriesNav = document.getElementById("categoriesNav");
-
-  // Loader
-  eventsContainer.innerHTML = `
-    <div class="tibashi-loader-wrapper">
-      <div class="tibashi-loader"></div>
-      <p class="tibashi-loading-text">در حال بارگذاری...</p>
-    </div>
-  `;
+   const eventsContainer = document.getElementById("eventsContainer");
+  const loaderId = showLoader({ type: 'circle', target: eventsContainer, theme: 'primary' });
 
   try {
     allEvents = await fetchEvents();
+    hideLoader(loaderId);
+
     setupCategories();
     filterEvents();
-
-    // Handle initial URL if /e/:id
   } catch (err) {
-    console.error(err);
+    hideLoader(loaderId);
     eventsContainer.innerHTML = `<div class="tibashi-error">خطا در دریافت داده‌ها</div>`;
   }
 
-  // Search
   searchInput.addEventListener("input", filterEvents);
 
- 
   // -------------------------
   // Categories
   // -------------------------
@@ -44,8 +36,7 @@ export async function initEvents() {
     gnes.forEach((g) => {
       const btn = document.createElement("button");
       btn.textContent = g;
-      btn.className =
-        g === "همه" ? "tibashi-cat-btn tibashi-cat-active" : "tibashi-cat-btn";
+      btn.className = g === "همه" ? "tibashi-cat-btn tibashi-cat-active" : "tibashi-cat-btn";
       btn.onclick = () => {
         activeCategory = g;
         filterEvents();
@@ -57,23 +48,21 @@ export async function initEvents() {
 
   function updateCategoryButtons() {
     Array.from(categoriesNav.children).forEach((btn) => {
-      btn.classList.toggle(
-        "tibashi-cat-active",
-        btn.textContent === activeCategory
-      );
+      btn.classList.toggle("tibashi-cat-active", btn.textContent === activeCategory);
     });
   }
 
- 
+  // -------------------------
+  // Filter
+  // -------------------------
   function filterEvents() {
     const query = searchInput.value.toLowerCase();
-
     filteredEvents = allEvents.filter(
       (e) =>
         (activeCategory === "همه" || e.gne === activeCategory) &&
         (e.name.toLowerCase().includes(query) ||
-          e.location.toLowerCase().includes(query) ||
-          e.gne.toLowerCase().includes(query))
+         e.location.toLowerCase().includes(query) ||
+         e.gne.toLowerCase().includes(query))
     );
 
     renderEvents(filteredEvents);
@@ -91,24 +80,57 @@ export async function initEvents() {
       return;
     }
 
-   events.forEach((ev) => {
-  const card = document.createElement("a");
-  card.href = `e/${ev.id}`;
-  card.className = "tibashi-event-card tibashi-shine";
-  card.innerHTML = `
-    <img src="${BASE_URL}${ev.src}" alt="${ev.name}" class="tibashi-event-img">
-    <h3 class="tibashi-event-name">${ev.name}</h3>
-    <div class="tibashi-event-location">${ev.location}</div>
-    <div class="tibashi-event-rate">
-      ${ev.rate && ev.rate !== "0" ? "⭐ " + ev.rate : ""}
-    </div>
-  `;
-  eventsContainer.appendChild(card);
+    events.forEach((ev) => {
+      const card = document.createElement("a");
+      card.href = `/e/${ev.id}`;
+      card.className = "tibashi-event-card tibashi-shine once";
+      setTimeout(() => card.classList.remove('once'), 1200);
+
+      const img = document.createElement("img");
+      img.src = `${BASE_URL}${ev.src}`;
+      img.alt = ev.name;
+      img.className = "tibashi-event-img loading";
+      img.onload = () => img.classList.remove("loading");
+      card.appendChild(img);
+
+      card.innerHTML += `
+        <h3 class="tibashi-event-name">${ev.name}</h3>
+        <div class="tibashi-event-location">${ev.location}</div>
+        <div class="tibashi-event-rate">
+          ${ev.rate && ev.rate !== "0" ? "⭐ " + ev.rate : ""}
+        </div>
+      `;
+
+      // -------------------------
+      // SPA navigation
+      // -------------------------
+      card.addEventListener("click", (e) => {
+  e.preventDefault();
+  const newUrl = `/e/${ev.id}`;
+
+  const app = document.getElementById("app");
+  
+  // Slide out current content to left
+  app.classList.add("page-slide-out");
+  
+  setTimeout(() => {
+    // Update URL & history
+    history.pushState({ eventId: ev.id }, "", newUrl);
+
+    // Load event component
+    EventComponent(ev.id);
+
+    // Slide in new content from right
+    app.classList.remove("page-slide-out");
+    app.classList.add("page-slide-in");
+
+    // Remove slide-in class after animation ends
+    setTimeout(() => app.classList.remove("page-slide-in"), 400);
+  }, 200);
 });
 
+
+      eventsContainer.appendChild(card);
+    });
   }
-
- 
-
-  
 }

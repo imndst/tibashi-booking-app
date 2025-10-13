@@ -1,0 +1,124 @@
+/* ===== Scrollable horizontal container ===== */
+.scroll-x {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 5px; /* small padding to avoid scrollbar overlap */
+  scroll-behavior: smooth; /* smooth scroll */
+}
+
+/* Hide default scrollbar for modern look */
+.scroll-x::-webkit-scrollbar {
+  height: 6px;
+}
+.scroll-x::-webkit-scrollbar-thumb {
+  background: var(--color-accent);
+  border-radius: 3px;
+}
+.scroll-x::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+
+/* Firefox scrollbar */
+.scroll-x {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-accent) var(--color-bg);
+}
+
+/* ===== Card styling ===== */
+.tibashi-sans-card {
+  flex: 0 0 auto; /* prevents cards from shrinking */
+  width: 200px; /* adjust if needed */
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.tibashi-sans-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.1);
+}
+
+/* Card titles and subtitles */
+.tibashi-sans-title {
+  font-weight: 700;
+  color: var(--color-text);
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tibashi-sans-sub {
+  font-weight: 400;
+  font-size: 0.875rem;
+  color: var(--color-muted);
+}
+
+/* Progress bar */
+.tibashi-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--color-border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 0.5rem 0;
+}
+
+.tibashi-progress-fill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 3px 0 0 3px;
+  transition: width 0.3s ease;
+}
+
+/* Button inside card */
+.tibashi-sans-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tibashi-sans-btn:hover {
+  background: var(--color-primary);
+}
+
+.tibashi-sans-btn:disabled {
+  background: var(--color-border);
+  color: var(--color-muted);
+  cursor: not-allowed;
+}
+
+.tibashi-sans-btn.active {
+  background: var(--color-primary); /* active button color */
+  color: #fff;
+  border: 1px solid var(--color-primary);
+}
+
+/* Icon inside button */
+.tibashi-sans-btn-icon {
+  width: 24px;
+  height: 24px;
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+  .tibashi-sans-card {
+    width: 160px;
+  }
+}

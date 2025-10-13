@@ -19,9 +19,8 @@ export async function EventComponent(eventId) {
 
     // 🔹 Main structure
     app.innerHTML = `
-      <div class="event-container" style="max-width:600px; margin:auto;">
+      <div class="event-container" style="max-width:1080px; margin:auto;">
         <h2>${event.name}</h2>
-
         <div class="tabs" style="display:flex; gap:5px; margin-bottom:10px;">
           <button class="tab-btn active" data-tab="buy">خرید</button>
           <button class="tab-btn" data-tab="info">اطلاعات</button>
@@ -31,22 +30,32 @@ export async function EventComponent(eventId) {
         <div id="tab-content" class="tab-content" style="border:1px solid #ccc; padding:15px; border-radius:8px;">
           <p>در حال بارگذاری...</p>
         </div>
+        <div id="seat-map-continer" class="seat-map-continer">
+           
+        </div>
       </div>
     `;
+    
 
     const tabContent = document.getElementById("tab-content");
     const tabButtons = document.querySelectorAll(".tab-btn");
 
     // 🔹 Function to render each tab
     async function renderTab(tab) {
-      tabContent.innerHTML = `<div class="tibashi-loader"></div>`;
+       tabContent.innerHTML = `<div class="loader loader-circle"></div>`;
 
       try {
         if (tab === "buy") {
+          const app = document.getElementById("seat-map-continer");
+          app.innerHTML = ``;
           await renderTimes(event, tabContent);
         } else if (tab === "info") {
+          const app = document.getElementById("seat-map-continer");
+          app.innerHTML = ``;
           await renderInfo(event, tabContent); // ✅ uses fetchActorDetails internally
         } else if (tab === "reviews") {
+          const app = document.getElementById("seat-map-continer");
+          app.innerHTML = ``;
           await renderComments(event, tabContent, 1);
         }
       } catch (err) {

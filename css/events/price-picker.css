@@ -1,0 +1,61 @@
+.tibashi-price-filter {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  margin-top:.7rem;
+}
+
+.price-filter-btn {
+  position: relative;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 500;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* Active state style */
+.price-filter-btn.tibashi-filter-active {
+  background: var(--color-accent);
+  color: #fff;
+  border-color: var(--color-accent);
+}
+
+/* Glow effect from right to left */
+.price-filter-btn.tibashi-filter-active::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.4) 50%,
+    rgba(255,255,255,0) 100%
+  );
+  transform: skewX(-20deg);
+  animation: glow-right-left 1.2s forwards;
+}
+
+@keyframes glow-right-left {
+  0% {
+    right: -100%;
+  }
+  100% {
+    right: 100%;
+  }
+}
+
+/* Hover effect for normal buttons */
+.price-filter-btn:not(.tibashi-filter-active):hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}

@@ -1,5 +1,5 @@
 import { fetchComments, postComment, editComment, replyComment } from '../../utils.js'
-
+import showCustomAlert from '../alert/showCustomAlert.js';
 
 function toPersianTime(isoDate) {
   try {
@@ -105,13 +105,13 @@ export async function renderComments(ev, tabContent, page = 1) {
 
       submitBtn.onclick = async () => {
         const comment = tabContent.querySelector("#newComment").value.trim();
-        if (!comment || selectedRating <= 0) return alert("لطفا نظر و امتیاز خود را وارد کنید");
+        if (!comment || selectedRating <= 0) return showCustomAlert("لطفا نظر و امتیاز خود را وارد کنید");
         try {
           const result = await postComment(ev.id, comment, selectedRating);
           if (result?.status) renderComments(ev, tabContent, 1);
-          else alert("❌ " + result?.message);
+          else showCustomAlert("❌ " + result?.message);
         } catch {
-          alert("خطا در ارسال نظر");
+          showCustomAlert("خطا در ارسال نظر");
         }
       };
     }
@@ -133,13 +133,13 @@ export async function renderComments(ev, tabContent, page = 1) {
         );
         container.querySelector(".tibashi-submit-reply").onclick = async () => {
           const replyText = container.querySelector(".tibashi-reply-input").value.trim();
-          if (!replyText) return alert("لطفا پاسخ را وارد کنید");
+          if (!replyText) return showCustomAlert("لطفا پاسخ را وارد کنید");
           try {
             const res = await replyComment(ev.id, btn.dataset.id, replyText);
             if (res.status) renderComments(ev, tabContent, page);
-            else alert("❌ " + res.message);
+            else showCustomAlert("❌ " + res.message);
           } catch {
-            alert("خطا در ثبت پاسخ");
+            showCustomAlert("خطا در ثبت پاسخ");
           }
         };
       };
@@ -155,9 +155,9 @@ export async function renderComments(ev, tabContent, page = 1) {
         try {
           const res = await editComment(btn.dataset.id, newComment, parseFloat(newRating));
           if (res.status) renderComments(ev, tabContent, page);
-          else alert("❌ " + res.message);
+          else showCustomAlert("❌ " + res.message);
         } catch {
-          alert("خطا در ویرایش");
+          showCustomAlert("خطا در ویرایش");
         }
       };
     });

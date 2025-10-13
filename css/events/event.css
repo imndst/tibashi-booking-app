@@ -1,0 +1,126 @@
+/* ====== Event Grid ====== */
+#eventsContainer {
+  display: grid;
+  gap: 1rem 0; /* only vertical gap; horizontal = 0 */
+  padding: 1rem 0; /* remove horizontal padding */
+  grid-template-columns: repeat(2, 1fr); /* mobile: 2 per row */
+}
+
+/* Tablet & Desktop Grid */
+@media (min-width: 768px) {
+  #eventsContainer {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  #eventsContainer {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* ====== Event Card ====== */
+.tibashi-event-card {
+  background: var(--color-surface);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  margin: 0; /* remove left/right margin */
+}
+
+/* Artistic puzzle-like offset */
+.tibashi-event-card:nth-child(odd) {
+  transform: translateX(-6px) translateY(-6px);
+}
+.tibashi-event-card:nth-child(even) {
+  transform: translateX(4px) translateY(4px);
+}
+
+/* Hover effect */
+.tibashi-event-card:hover {
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+  z-index: 10;
+}
+
+/* Event image */
+.tibashi-event-img {
+  width: 100%;
+  max-width: 100%; /* full width of the card */
+  max-height: 400px; /* decreased for desktop */
+  height: auto;
+  object-fit: cover;
+  display: block;
+  border-radius: 16px 16px 0 0;
+  background-color: #e5e7eb;
+  transition: transform 0.4s ease;
+}
+
+/* Image hover scale */
+.tibashi-event-card:hover .tibashi-event-img {
+  transform: scale(1.05);
+}
+
+/* Skeleton loading effect */
+.tibashi-event-img.loading {
+  background: linear-gradient(90deg, #f3f3f3 25%, #e0e0e0 50%, #f3f3f3 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  min-height: 180px;
+}
+
+/* Skeleton animation */
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Single-use shine effect */
+.tibashi-shine.once::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.4) 50%,
+    rgba(255,255,255,0) 100%
+  );
+  transform: skewX(-25deg);
+  animation: shine-once 1s forwards;
+  pointer-events: none;
+}
+
+@keyframes shine-once {
+  0% { left: -50%; opacity: 0; }
+  50% { left: 50%; opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+
+/* Event text */
+.tibashi-event-name,
+.tibashi-event-location,
+.tibashi-event-rate {
+  width: 100%;
+  padding-left: 0.5rem;
+  text-align: left;
+}
+
+.tibashi-event-name { font-weight: 600; margin-top: 0.6rem; }
+.tibashi-event-location { font-size: 0.85rem; color: var(--color-muted); margin-top: 0.3rem; }
+.tibashi-event-rate { margin-top: 0.4rem; color: var(--color-primary); font-weight: 500; }
+
+/* No events message */
+.tibashi-no-events {
+  text-align: center;
+  color: var(--color-muted);
+  padding: 2rem 0;
+}

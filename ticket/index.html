@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
 <link rel="stylesheet" href="./ticket.css">
-<title>بلیط شما</title>
 </head>
+
 <body>
 
 <div class="actions">
@@ -18,12 +19,10 @@
 <script src="https://new.gishot.ir/cnd/JsBarcode.all.min.js"></script>
 <script src="https://new.gishot.ir/cnd/html2pdf.bundle.min.js"></script>
 <script type="module">
-import { renderTickets, downloadTicketsPDF } from './ticketRenderer.js';
+import { renderTickets, downloadTicketsPDF } from './ticketRenderer.js?v=1992';
 
-// Read ticket number from query string
 const params = new URLSearchParams(window.location.search);
-const resNum = params.get("res"); // <-- use "res" instead of "Status"
-
+const resNum = params.get("res"); 
 console.log(resNum);
 
 if (resNum) {
