@@ -1,7 +1,7 @@
 // tibashi-js/utils/api.js
 const API_BASE = "https://bdcast.gishot.ir/api";
 // const API_BASE = "https://localhost:7032/api";
-export const BASE_URL =  "https://gishot.ir/";
+export const BASE_URL = "https://gishot.ir/";
 
 export const ENDPOINTS = {
   slides: `${API_BASE}/slides/Slides`,
@@ -9,14 +9,65 @@ export const ENDPOINTS = {
   events: `${API_BASE}/events/Events`,
   boxOffice: `${API_BASE}/Box/BoxOffice`,
   profiles: `${API_BASE}/Profiles/Profiles`,
-checkDiscount:`${API_BASE}/Discounts/CheckDiscountCode`,
+  checkDiscount: `${API_BASE}/Discounts/CheckDiscountCode`,
   comments: (eventId, page = 1) =>
     `${API_BASE}/Comments/GetComments/${eventId}?page=${page}`,
   times: (eventId) => `${API_BASE}/Time/GetTimes/${eventId}`,
   capacity: (eventId) => `${API_BASE}/Capacity/GetCapacity/${eventId}`,
   actorDetails: (eventId) => `${API_BASE}/Actores/GetActorDetails/${eventId}`,
   e: (eventId) => `${API_BASE}/events/event/${eventId}`,
+  deleteTempSeats: `${API_BASE}/TempSeat/delete-by-temp`, // add the API endpoint
+  deleteRecentByProgram: (programId) =>
+    `${API_BASE}/TempSeat/delete-recent-by-program?programId=${programId}`,
 };
+
+export async function deleteTempSeats() {
+  try {
+    const res = await fetch(ENDPOINTS.deleteTempSeats, {
+      method: "GET", // since your API is GET
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      console.warn("Delete temp seats API returned:", err);
+      return {
+        status: false,
+        message: err?.message || "خطا در پاکسازی صندلی‌ها",
+      };
+    }
+
+    const data = await res.json();
+    console.log("Temp seats deleted:", data);
+    return data;
+  } catch (err) {
+    console.error("Error deleting temp seats:", err);
+    return { status: false, message: "خطا در پاکسازی صندلی‌ها" };
+  }
+}
+
+export async function deleteRecentByProgram(programId) {
+  try {
+    const res = await fetch(ENDPOINTS.deleteRecentByProgram(programId), {
+      method: "GET", // your API is GET
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      console.warn("Delete recent by program API returned:", err);
+      return { status: false, message: err?.message || "خطا در پاکسازی صندلی‌ها" };
+    }
+
+    const data = await res.json();
+    console.log(`Recent seats deleted for program ${programId}:`, data);
+    return data;
+  } catch (err) {
+   
+    return { status: false, message: "خطا در پاکسازی صندلی‌ها" };
+  }
+}
+
 
 
 export async function checkDiscountCode(programId, discountCode) {
@@ -24,7 +75,10 @@ export async function checkDiscountCode(programId, discountCode) {
     const res = await fetch(ENDPOINTS.checkDiscount, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ProgramId: programId, DiscountCode: discountCode })
+      body: JSON.stringify({
+        ProgramId: programId,
+        DiscountCode: discountCode,
+      }),
     });
 
     if (!res.ok) throw new Error("خطا در بررسی کد تخفیف");
@@ -227,7 +281,7 @@ export async function getSeatByGlobalId(eventId, globalSeatId) {
   }
 
   const plan = await buildSeatPlan(eventId);
-  return plan.find(s => s.globalId === Number(globalSeatId)) || null;
+  return plan.find((s) => s.globalId === Number(globalSeatId)) || null;
 }
 
 /**
@@ -240,7 +294,10 @@ export async function getSeatByGlobalId(eventId, globalSeatId) {
  * @param {string[]} [lists.soc] - Social seat IDs
  * @returns {string} Class name ("Book" | "Temp" | "Ipg" | "Soc" | "")
  */
-export function getSeatClass(seatId, { book = [], temp = [], ipg = [], soc = [] }) {
+export function getSeatClass(
+  seatId,
+  { book = [], temp = [], ipg = [], soc = [] }
+) {
   const idStr = seatId.toString();
   if (book.includes(idStr)) return "Book";
   if (temp.includes(idStr)) return "Temp";

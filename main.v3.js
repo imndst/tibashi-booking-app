@@ -1,8 +1,9 @@
 import { renderLayout } from "./shared/layout.js";
-import { initTibashiSlider } from './tibashi-js/events/swiper.js';
+
 import { initEvents } from './tibashi-js/events/events.js'
 import { EventComponent } from "./tibashi-js/events/e.js";
 import { renderSeats } from "./tibashi-js/modal/seat/SeatMap.js";
+import { initImageCarousel } from "./tibashi-js/events/swiper.js";
 
 const routes = [
   {
@@ -13,6 +14,7 @@ const routes = [
         <section class="main">
           <div id="swiperContainer" class="tibashi-slider-container"></div>
           <div id="eventsSection">
+            <div id="slider"></div>
             <nav id="categoriesNav" class="tibashi-categories"></nav>
             <input type="text" id="searchInput" placeholder="جستجو..." class="tibashi-search"/>
             <div id="eventsContainer"></div>
@@ -21,7 +23,8 @@ const routes = [
       `;
 
       // Initialize slider
-      await initTibashiSlider();
+      const container = document.getElementById("slider");
+       initImageCarousel(container);
 
       // Initialize events
       await initEvents();

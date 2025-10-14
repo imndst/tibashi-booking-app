@@ -14,7 +14,7 @@
 @media (max-width: 768px) {
   .seat-controls {
     position: fixed;
-    bottom: 50px;
+    bottom: 0px;
     left: 0;
     width: 100%;
     padding: 12px;

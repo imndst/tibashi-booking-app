@@ -15,14 +15,12 @@ export function renderLayout() {
           <span></span>
           <span></span>
         </button>
-        <div class="nav-logo">Tibashi</div>
+        <div class="nav-logo">Gishot App</div>
       </div>
 
       <nav id="navMenu" class="nav-menu">
-        <a href="/" data-link>🏠 خانه</a>
-        <a href="/product/42" data-link>📦 محصول</a>
-        <a href="/account/pay" data-link>💳 پرداخت</a>
-        <a href="/search?q=test" data-link>🔍 جستجو</a>
+        <a href="/" data-link> خانه</a>
+        <a href="/account/" data-link>پیگیری</a>
         <button id="themeToggle" class="theme-toggle">🌓 تغییر تم</button>
       </nav>
     </header>
@@ -32,7 +30,7 @@ export function renderLayout() {
     <main id="app" class="content"></main>
 
     <footer class="footer">
-      <p>© 2025 GIshot-Tibashi SPA Router</p>
+      <p>© 2025 GIshot App</p>
     </footer>
   `;
 

@@ -1,35 +1,38 @@
-import postcss from "rollup-plugin-postcss";
-import { terser } from "rollup-plugin-terser";
+const postcss = require("rollup-plugin-postcss");
+const { terser } = require("rollup-plugin-terser");
+const path = require("path");
 
-export default [
-  // 🔸 JS Bundle
+module.exports = [
+  // 🔹 JS Bundle
   {
-    input: "./main.js",
+    input: "./main.v3.js",
     output: {
       dir: "dist",
+      entryFileNames: "[name]-[hash].js", // Add hash to JS file
       format: "es",
       sourcemap: true,
     },
     plugins: [
       postcss({
-        extract: true,   // CSS داخل JS جدا بشه
-        minimize: true,
+        extract: true,      // Extract CSS from JS
+        minimize: true,     // Minify CSS
         sourceMap: true,
       }),
-      terser(),
+      terser(),             // Minify JS
     ],
   },
 
-  // 🔸 CSS Bundle مستقل
+  // 🔹 CSS Bundle (standalone)
   {
-    input: "./app.css",   // ورودی اصلی CSS
+    input: "./app.css",     // Input CSS file
     output: {
       dir: "dist",
+      assetFileNames: "[name]-[hash][extname]", // Add hash to CSS file
     },
     plugins: [
       postcss({
-        extract: "app.css",  // خروجی نهایی
-        minimize: true,
+        extract: true,      // Output separate CSS file
+        minimize: true,     // Minify CSS
         sourceMap: true,
       }),
     ],

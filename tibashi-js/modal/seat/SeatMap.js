@@ -8,7 +8,7 @@ import { showCustomerModal } from "./components/CustomerModal.js";
 import showCustomAlert from "../../alert/showCustomAlert.js";
 import { getSeatClass } from "../../../utils.js";
 import { createCountdownTimer } from "./components/Timer.js";
-
+import { deleteTempSeats } from "../../../utils.js";
 // Load CSS
 const css = document.createElement("link");
 css.rel = "stylesheet";
@@ -17,27 +17,11 @@ document.head.appendChild(css);
 
 // Selected Seats Header Style
 const style = document.createElement("style");
-style.innerHTML = `
-.selected-seats-header {
-  background: #f0f0f0;
-  padding: 10px 15px;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  font-weight: bold;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  color: #333;
-  font-size: 14px;
-}
-.selected-seats-header .seat-numbers {
-  color: #d9534f;
-  font-weight: bold;
-}
-`;
+
 document.head.appendChild(style);
 
 // Build Seat Plan
+let globalSeatNumberMap = [];
 export function buildSeatPlan(
   seatData,
   book = [],
@@ -64,25 +48,32 @@ export function buildSeatPlan(
   if (Array.isArray(area) && area.length === 2) {
     [mapWidth, mapHeight] = area;
   }
+  const dateObj = new Date(time);
+
+  const persianDate = dateObj.toLocaleDateString("fa-IR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+
+  const persianTime = dateObj.toLocaleTimeString("fa-IR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
 
   const seatMapStyle = `
     width:100%;
-    height:${mapHeight}px;
-    display:flex;
-    flex-direction:column;
-    gap:4px;
     direction:${aligment === 1 ? "rtl" : "ltr"};
     transform:scale(${scale});
-    transform-origin: top left;
-    box-sizing:border-box;
-    position:relative;
+    min-height:${mapHeight}px
   `;
 
   let seatMapHtml = `
     <div class="tibashi-seat-wrapper">
       <div id="selected-seats-header" class="selected-seats-header">
-        <span>ساعت: ${time}</span>
-        <span class="seat-numbers">-</span>
+        <span>${persianDate}-${persianTime}</span>
+       
       </div>
   `;
 
@@ -110,21 +101,39 @@ export function buildSeatPlan(
   }
 
   // Stage
-  let stageStyle = `
-    width:${width}px;
-    height:${height}px;
-    background:#333;
-    color:#fff;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-weight:bold;
-  `;
-  stageStyle +=
-    lat === "absolute"
-      ? `position:absolute; top:${top}px; left:${left}px;`
-      : `margin-top:${top}px; margin-left:${left}px;`;
+  // Normalize width/height
+  let Formatedwidth = parseInt(width, 10);
+  let Formatedheight = parseInt(height, 10);
 
+  // Fallback width = 350px if width invalid
+  let stageStyle = `
+  width:${isNaN(Formatedwidth) ? "300px" : Formatedwidth + "px"};
+  height:${isNaN(Formatedheight) ? "unset" : Formatedheight + "px"};
+`;
+
+  // Helper to format top/left
+  function formatPx(value) {
+    const num = parseInt(value, 10);
+    return isNaN(num) ? null : `${num}px`; // null if invalid
+  }
+
+  // Apply positioning
+  const topVal = formatPx(top);
+  const leftVal = formatPx(left);
+
+  if (lat === "absolute") {
+    stageStyle +=
+      topVal && leftVal
+        ? `position:absolute; top:${topVal}; left:${leftVal};`
+        : `margin: 0 auto;`; // center if invalid
+  } else {
+    stageStyle +=
+      topVal && leftVal
+        ? `margin-top:${topVal}; margin-left:${leftVal};`
+        : `margin: 18px auto;`; // center if invalid
+  }
+
+  // Build HTML
   seatMapHtml += `<div id="seat-map" class="tibashi-seat-map" style="${seatMapStyle}">`;
   seatMapHtml += `<div class="Stage" style="${stageStyle}">صحنه</div>`;
 
@@ -139,23 +148,35 @@ export function buildSeatPlan(
       : 1;
 
     const styleParts = [
-      `position:${row.row_possition || "relative"}`,
-      row.top_in_abs ? `top:${row.top_in_abs}px` : "",
-      row.left_in_abs ? `left:${row.left_in_abs}px` : "",
-      row.row_top_margin ? `margin-top:${row.row_top_margin}px` : "",
-      row.row_lef_margin ? `margin-left:${row.row_lef_margin}px` : "",
-      row.transform_rows ? `transform:rotate(${row.transform_rows}deg)` : "",
-      `direction:${row.seat_align === "RTL" ? "RTL" : "unset"}`,
-    ].filter(Boolean);
+      row.row_possition ? `position:${row.row_possition}` : "",
+      row.top_in_abs != null ? `top:${row.top_in_abs}px` : "",
+      row.left_in_abs != null
+        ? aligment === 1
+          ? `right:${row.left_in_abs}px`
+          : `left:${row.left_in_abs}px`
+        : "",
+      row.row_top_margin != null ? `margin-top:${row.row_top_margin}px` : "",
+      row.row_lef_margin != null ? `margin-left:${row.row_lef_margin}px` : "",
+      row.transform_rows != null
+        ? `transform:rotate(${row.transform_rows}deg)`
+        : "",
+      (width || pad) != null
+        ? row.row_possition
+          ? null
+          : `width:${pad || width}px`
+        : null,
+      row.seat_align === "RTL" ? `direction:RTL` : null,
+    ].filter((part) => part && !part.includes("unset")); // remove empty or unset
+
     const style = styleParts.join("; ");
 
     const rowTitle = row.row_title?.trim() || rowIndex + 1;
     seatMapHtml += `
-      <div class="RowContainer" 
-           data-idrow="${rowIndex}" 
-           data-price="${parseInt(row.row_price || 0, 10) / 10}" 
-           style="${style};display:flex;align-items:center;gap:4px;flex-wrap:nowrap;">
-        <div class="RowHeader">${rowTitle}</div>
+      <div class="RowContainer" data-idrow="${rowIndex}"  data-price="${
+      parseInt(row.row_price || 0, 10) / 10
+    }" 
+           style="${style}">
+        <span class="RowHeader">${rowTitle}</span>
     `;
 
     const startSeatNumber = isIncr && incrStart !== null ? incrStart : 1;
@@ -169,7 +190,8 @@ export function buildSeatPlan(
           i === Number(blankIndex) + 1
         ) {
           const width = row[`width_space_${j}`] ?? 10;
-          seatMapHtml += `<div class="BlankSpace" style="width:${width}px;min-width:${width}px;"></div>`;
+          seatMapHtml += `<span class="BlankSpace" style="width:${width}px;min-width:${width}px;"></span>`;
+          globalSeatNumberMap.push(globalSeatId);
         }
       }
 
@@ -179,15 +201,15 @@ export function buildSeatPlan(
       const seatClass = getSeatClass(globalSeatId, { book, temp, ipg, soc });
 
       seatMapHtml += `
-        <div class="Seat ${seatClass}" 
+        <span class="Seat ${seatClass}" 
              data-seat="${globalSeatId}" 
              data-row="${rowTitle}" 
              data-price="${price}">
              ${seatNumber}
-        </div>`;
+        </span>`;
     }
 
-    seatMapHtml += `<div class="RowEndHeader">${rowTitle}</div></div>`;
+    seatMapHtml += `<span class="RowEndHeader">${rowTitle}</span></div>`;
   });
 
   seatMapHtml += `</div></div>`;
@@ -239,7 +261,7 @@ export async function renderSeats({ timeId }) {
   app.innerHTML = `
     <div class="loader loader-dots"><div></div><div></div><div></div></div>
   `;
-
+  await deleteTempSeats();
   try {
     const [seatStatusData, seatPlanData] = await Promise.all([
       fetchSeatStatus(timeId),
@@ -250,9 +272,6 @@ export async function renderSeats({ timeId }) {
     const hallInfo = seatStatusData?.result?.hallInfo;
     if (!seatPlanData?.result || !programId)
       throw new Error("اطلاعات صندلی‌ها یافت نشد");
-    const { book = [], ipg = [], temp = [], soc = [] } = seatStatusData.result;
-    const allSeats = [...book, ...ipg, ...soc, ...temp];
-    console.log("All combined seat IDs:", allSeats);
 
     app.innerHTML = `
       ${buildSeatPlan(
@@ -299,23 +318,55 @@ export async function renderSeats({ timeId }) {
       totalEl.textContent = `${
         selectedSeats.length
       } بلیت - ${total.toLocaleString()} تومان`;
-      selectedSeatsHeader.textContent =
-        selectedSeats.map((s) => s.seatNumber).join(", ") || "-";
+      // selectedSeatsHeader.textContent =
+      //   selectedSeats.map((s) => s.seatNumber).join(", ") || "-";
     });
 
     seatSelectionTimer = createCountdownTimer(
       120,
-      (remaining) => console.log("زمان باقی‌مانده:", remaining),
+      (remaining) => remaining,
       () => location.reload()
     );
     seatSelectionTimer.start();
 
-    // Pay button
     payBtn.addEventListener("click", () => {
       if (selectedSeats.length === 0)
-        return showCustomAlert("لطفا حداقل یک صندلی انتخاب کنید");
-      if (selectedSeats.length > 9)
-        return showCustomAlert("حداکثر 9 صندلی در هر خرید");
+        return showCustomAlert("حداقل یک صندلی انتخاب کنید");
+
+      if (selectedSeats.length > 10)
+        return showCustomAlert("سقف خرید بلیت در هر انتخاب 10 بلیت است");
+
+      // Check for problematic seat arrangement
+      const seatNumbers = selectedSeats.map((seat) => String(seat.seatNumber));
+
+      const hasExactSeat = seatNumbers.some((seatNum) => {
+        const seatEl = document.querySelector(`[data-seat="${seatNum}"]`);
+        if (!seatEl) return false;
+
+        const next = seatEl.nextElementSibling;
+        const prev = seatEl.previousElementSibling;
+
+        const nextNext = next?.nextElementSibling;
+        const prevPrev = prev?.previousElementSibling;
+
+        const isNextSeat = next?.className?.trim() === "Seat";
+        const isPrevSeat = prev?.className?.trim() === "Seat";
+
+        const isNextNextNotSeat = nextNext?.className?.trim() !== "Seat";
+        const isPrevPrevNotSeat = prevPrev?.className?.trim() !== "Seat";
+
+        return (
+          (isNextSeat && isNextNextNotSeat) || (isPrevSeat && isPrevPrevNotSeat)
+        );
+      });
+
+      if (hasExactSeat) {
+        return showCustomAlert(
+          " درانتخاب های خود دقت کنید صندلی تک ایجاد نشود"
+        );
+      }
+
+      // Proceed if all validations pass
       const remainingTime = seatSelectionTimer.getRemaining();
       showCustomerModal(
         hallInfo,
@@ -341,18 +392,18 @@ export async function renderSeats({ timeId }) {
           };
 
           try {
-            const result = await submitTickets(payload);
-            if (!result?.status)
-              throw new Error(result?.message || "خطا در ثبت بلیط");
-            const token = result?.result?.mtoken;
-            if (!token) throw new Error("توکن پرداخت دریافت نشد");
+            await deleteTempSeats();
+            const TiketResult = await submitTickets(payload);
+            if (!TiketResult?.status) showCustomAlert("لطفا مجدد امتحان کنید");
 
+            const token = TiketResult?.result?.mtoken;
+            if (!token) throw new Error("توکن پرداخت دریافت نشد");
             showCustomAlert(
               "در حال اتصال به درگاه بانکی لطفا فیلتر شکن خود را خاموش کنید"
             );
             window.location.href = `https://sep.shaparak.ir/OnlinePG/SendToken?token=${token}`;
           } catch (err) {
-            console.error("خطا در ارسال اطلاعات به سرور");
+            console.error("یکی از صندلی ها انتخابی شما قابل رزرو نیست");
             location.reload();
           }
         },

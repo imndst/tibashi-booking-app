@@ -1,6 +1,6 @@
 // tibashi-js/modal/time.js
 import { ENDPOINTS } from "../../utils.js";
-
+import { deleteRecentByProgram } from "../../utils.js";
 export async function renderTimes(ev, tabContent) {
   // Show loader while fetching
   tabContent.innerHTML = `
@@ -62,7 +62,7 @@ export async function renderTimes(ev, tabContent) {
       let datePart = s.persian;
       let timePart = "";
       if (s.persian.includes("|")) {
-        const parts = s.persian.split("|").map(t => t.trim());
+        const parts = s.persian.split("|").map((t) => t.trim());
         datePart = parts[0];
         timePart = parts[1];
       }
@@ -102,78 +102,45 @@ export async function renderTimes(ev, tabContent) {
       scrollContainer.appendChild(div);
 
       // Button click behavior
-      btn.addEventListener("click", async e => {
+      btn.addEventListener("click", async (e) => {
         e.stopPropagation();
         if (btn.disabled) return;
 
-        const prevActiveBtn = scrollContainer.querySelector(".tibashi-sans-btn.active");
+        const prevActiveBtn = scrollContainer.querySelector(
+          ".tibashi-sans-btn.active"
+        );
         if (prevActiveBtn) {
           prevActiveBtn.classList.remove("active");
-          const prevIcon = prevActiveBtn.querySelector(".tibashi-sans-btn-icon");
-          if (prevIcon) prevIcon.src = "../tibashi-asset/icons/clock-plus-svgrepo-com.svg";
+          const prevIcon = prevActiveBtn.querySelector(
+            ".tibashi-sans-btn-icon"
+          );
+          if (prevIcon)
+            prevIcon.src = "../tibashi-asset/icons/clock-plus-svgrepo-com.svg";
         }
 
         btn.classList.add("active");
         const icon = btn.querySelector(".tibashi-sans-btn-icon");
-        if (icon) icon.src = "../tibashi-asset/icons/clock-check-svgrepo-com.svg";
+        if (icon)
+          icon.src = "../tibashi-asset/icons/clock-check-svgrepo-com.svg";
+
+        const footer = document.querySelector("footer.footer");
+        if (footer) {
+          footer.style.position = "static"; 
+          footer.style.display= "none"; // or "relative"
+        }
 
         const eventId = btn.getAttribute("data-event-id");
         const timeId = btn.getAttribute("data-time-id");
         const event = { eventId, timeId };
         const { renderSeats } = await import("./seat/SeatMap.js");
+   
+        await deleteRecentByProgram(timeId);
+
         await renderSeats(event, eventId);
       });
     });
 
-    // ----------- SEO Enhancements -----------
-
-    // Set page <title>
-    document.title = ev.title || "رویداد";
-
-    // Meta description
-    let descMeta = document.querySelector('meta[name="description"]');
-    if (!descMeta) {
-      descMeta = document.createElement("meta");
-      descMeta.setAttribute("name", "description");
-      document.head.appendChild(descMeta);
-    }
-    descMeta.setAttribute(
-      "content",
-      `رویداد ${ev.title} - زمان‌ها و جزئیات اجرا ${ev.description || ""}`
-    );
-
-    // Open Graph image
-    if (ev.image) {
-      let ogImage = document.querySelector('meta[property="og:image"]');
-      if (!ogImage) {
-        ogImage = document.createElement("meta");
-        ogImage.setAttribute("property", "og:image");
-        document.head.appendChild(ogImage);
-      }
-      ogImage.setAttribute("content", ev.image);
-    }
-
-    // JSON-LD structured data
-    const ldScript = document.createElement("script");
-    ldScript.type = "application/ld+json";
-    ldScript.text = JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "Event",
-      "name": ev.title,
-      "image": ev.image ? [ev.image] : [],
-      "startDate": ev.startDate || "",
-      "endDate": ev.endDate || "",
-      "description": ev.description || "جزئیات رویداد",
-      "eventStatus": "https://schema.org/EventScheduled",
-      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
-      "location": {
-        "@type": "Place",
-        "name": ev.venueName || "محل برگزاری",
-        "address": ev.venueAddress || ""
-      }
-    });
-    document.head.appendChild(ldScript);
-
+    
   } catch (err) {
     tabContent.innerHTML = `<div class="tibashi-error">خطا در بارگذاری زمان‌ها</div>`;
     console.error(err);

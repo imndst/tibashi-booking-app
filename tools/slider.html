@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sliding Image Carousel</title>
+    <!-- Load Tailwind CSS --><script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            background-color: #f3f4f6; /* bg-gray-100 */
+            overflow: hidden; /* Prevent body scroll if content peeks out */
+        }
+        /* Slider container: fixed aspect ratio and position context for absolute slides */
+        #image-slider {
+            width: 100%;
+            max-width: 500px; /* md:max-w-xl roughly */
+            aspect-ratio: 16 / 9; /* Maintain aspect ratio */
+            position: relative; /* Context for absolutely positioned slides */
+            overflow: hidden;
+            border-radius: 1.5rem; /* rounded-3xl */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* shadow-2xl */
+            background-color: white; /* bg-white */
+        }
+        /* The individual image slides are now absolutely positioned */
+        .image-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0; /* Hidden by default */
+            transition: none; /* No default CSS transition; handled by JS */
+            will-change: transform, opacity; /* Optimize for animation */
+        }
+        /* Active slide is visible */
+        .image-slide.active {
+            opacity: 1;
+        }
+
+        /* Overlay for Title and Dots */
+        .overlay {
+            position: absolute;
+            inset: auto 0 0 0; /* bottom: 0, left: 0, right: 0 */
+            padding: 1rem; /* p-4 */
+            padding-top: 2rem; /* pt-8 */
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent); /* bg-gradient-to-t from-black/50 to-transparent */
+            z-index: 10; /* Ensure it's above the images */
+        }
+        .overlay h2 {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 700; /* font-bold */
+            color: white; /* text-white */
+            margin-bottom: 0.75rem; /* mb-3 */
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5); /* drop-shadow-lg */
+            text-align: center; /* text-center */
+        }
+        .dot {
+            width: 0.5rem; /* w-2 */
+            height: 0.5rem; /* h-2 */
+            border-radius: 9999px; /* rounded-full */
+            cursor: pointer;
+            transition: background-color 0.3s ease; /* transition-colors duration-300 */
+        }
+        .dot.active {
+            background-color: white; /* bg-white */
+        }
+        .dot:not(.active) {
+            background-color: rgba(255, 255, 255, 0.5); /* bg-white/50 */
+        }
+        /* Footer text */
+        .footer-text {
+            padding: 1rem; /* p-4 */
+            text-align: center; /* text-center */
+            font-size: 0.875rem; /* text-sm */
+            color: #6b7280; /* text-gray-500 */
+            font-weight: 600; /* font-semibold */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Slider Container Card --><div id="image-slider" class="bg-white">
+        
+        <!-- Image Area with OVERLAY for Dots and Title --><div class="relative w-full h-full">
+            <!-- Image Slides will be generated here by JavaScript and absolutely positioned --><div id="slides-container"></div>
+
+            <!-- OVERLAY: Title and Dots --><div class="overlay">
+                <h2 id="image-title"></h2>
+                <div id="dots-container" class="flex justify-center space-x-2"></div>
+            </div>
+        </div>
+        
+        <!-- Minimal footer for instructions --><div class="footer-text">
+             Swipe left/right OR up/down to navigate! Fast downward swipe triggers a 'chance machine' spin!
+        </div>
+    </div>
+
+    <script>
+        const images = [
+            { src: 'https://placehold.co/800x450/3b82f6/ffffff?text=Slide+1', title: 'Blue Ocean Abstract (1)' },
+            { src: 'https://placehold.co/800x450/10b981/ffffff?text=Slide+2', title: 'Green Mountain Range (2)' },
+            { src: 'https://placehold.co/800x450/f97316/ffffff?text=Slide+3', title: 'Desert Sunset View (3)' },
+            { src: 'https://placehold.co/800x450/ef4444/ffffff?text=Slide+4', title: 'Red Geometric Grid (4)' },
+            { src: 'https://placehold.co/800x450/4f46e5/ffffff?text=Slide+5', title: 'Purple Cloudscape (5)' },
+            { src: 'https://placehold.co/800x450/22c55e/ffffff?text=Slide+6', title: 'Emerald Pattern (6)' }
+        ];
+        
+        let currentIndex = 0;
+        const slidesContainer = document.getElementById('slides-container'); 
+        const imageTitleEl = document.getElementById('image-title');
+        const dotsContainer = document.getElementById('dots-container');
+        const sliderEl = document.getElementById('image-slider');
+        
+        // --- Touch and Velocity Tracking Variables ---
+        let touchstartX = 0;
+        let touchendX = 0;
+        let touchstartY = 0; 
+        let touchendY = 0;   
+        let touchstartTime = 0; 
+        let touchendTime = 0; 
+        
+        // Swipe sensitivity
+        const minSwipeDistance = 75; 
+        const minSwipeTime = 50;     
+        
+        let isAnimating = false; 
+
+        // --- Auto-Slide Variables ---
+        let autoSlideInterval;
+        const autoSlideDuration = 5000; // 5 seconds interval
+        
+        // --- Chance Machine Constants (NEW) ---
+        const CHANCE_MIN_SPIN = 5;       // Minimum slides to spin through
+        const CHANCE_MAX_SPIN = 10;      // Maximum slides to spin through
+        const CHANCE_VELOCITY_THRESHOLD = 0.8; // Velocity to trigger chance machine
+        const CHANCE_STEP_DURATION = 75; // Very fast step duration for the "spin"
+
+        // --- Animation Style Definitions (Two types: Horizontal and Vertical) ---
+        const animationStyles = {
+            // Simple Horizontal Slide (Used for horizontal navigation and auto-advance)
+            'simpleHorizontal': {
+                // Current slide slides out in the direction of movement (e.g., direction 1, moves -100%)
+                out: (direction) => `translateX(${direction * -100}%)`,
+                in: (direction) => ({
+                    transform: `translateX(0%)`,
+                    // New slide comes from the opposite direction (e.g., direction 1, starts at 100%)
+                    startTransform: `translateX(${direction * 100}%)`, 
+                    bezier: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' // Smooth ease-in-out
+                })
+            },
+            // Simple Vertical Slide (Used for vertical navigation and chance machine)
+            'simpleVertical': {
+                // Current slide slides out in the direction of movement (e.g., direction 1, moves -100%)
+                out: (direction) => `translateY(${direction * -100}%)`,
+                in: (direction) => ({
+                    transform: `translateY(0%)`,
+                    // New slide comes from the opposite direction (e.g., direction 1, starts at 100%)
+                    startTransform: `translateY(${direction * 100}%)`, 
+                    bezier: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' // Smooth ease-in-out
+                })
+            }
+        };
+
+
+        // --- Core Slider Functionality ---
+
+        /**
+         * Clears the current auto-slide timer and starts a new one.
+         */
+        function resetAutoSlide() {
+            clearInterval(autoSlideInterval);
+            autoSlideInterval = setInterval(autoAdvance, autoSlideDuration);
+        }
+
+        /**
+         * Logic for automatic slide advancement (always simple slide right/content moves left).
+         */
+        function autoAdvance() {
+            if (isAnimating) return;
+
+            const steps = 1;
+            const animationDurationMs = 700; // Standard speed for auto-advance
+            const direction = 1; // Always move to the next slide (slide content left)
+            const styleKey = 'simpleHorizontal'; // Always use simple horizontal slide for auto-advance
+
+            const oldIndex = currentIndex;
+            let newIndex = (currentIndex + (direction * steps));
+            newIndex = (newIndex % images.length + images.length) % images.length; // Handle looping
+
+            if (oldIndex === newIndex) {
+                isAnimating = false;
+                return;
+            }
+
+            animateOutAndIn(newIndex, direction, animationDurationMs, styleKey); 
+        }
+
+        /**
+         * Orchestrates the slide out/in animation.
+         * @param {number} newIndex The index of the slide to move to.
+         * @param {number} direction -1 for prev, 1 for next.
+         * @param {number} durationMs The total duration of the animation in milliseconds.
+         * @param {string} styleKey The key from animationStyles to use.
+         */
+        async function animateOutAndIn(newIndex, direction, durationMs, styleKey = 'simpleHorizontal') {
+            if (isAnimating) return;
+            isAnimating = true;
+
+            const currentSlide = slidesContainer.children[currentIndex];
+            const nextSlide = slidesContainer.children[newIndex];
+            const style = animationStyles[styleKey];
+
+            // 1. Prepare next slide: position it off-screen and set opacity 0
+            nextSlide.style.transition = 'none'; 
+            nextSlide.style.opacity = '0';
+            nextSlide.style.transform = style.in(direction).startTransform; 
+
+            // Force reflow
+            nextSlide.offsetWidth; 
+
+            // 2. Apply animation properties 
+            // Out animation (current slide) slightly shorter and simpler
+            currentSlide.style.transition = `transform ${durationMs * 0.7}ms ease-out, opacity ${durationMs * 0.7}ms ease-out`;
+            // In animation (next slide) uses the full duration and specified bezier
+            nextSlide.style.transition = `transform ${durationMs}ms ${style.in(direction).bezier}, opacity ${durationMs * 0.5}ms ease-in`; 
+
+            // 3. Animate current slide out
+            currentSlide.style.transform = style.out(direction);
+            currentSlide.style.opacity = '0';
+
+            // 4. Animate next slide in
+            nextSlide.style.transform = style.in(direction).transform; 
+            nextSlide.style.opacity = '1';
+
+            // Wait for the animation to complete
+            await new Promise(resolve => setTimeout(resolve, durationMs));
+
+            // 5. Clean up
+            currentSlide.style.transition = 'none';
+            currentSlide.style.transform = 'none';
+            currentSlide.classList.remove('active'); 
+
+            nextSlide.classList.add('active'); 
+            currentIndex = newIndex;
+            updateTitleAndDots(); 
+
+            isAnimating = false;
+        }
+
+        /**
+         * Simulates a chance machine spin (only for fast downward vertical swipes).
+         * This uses repeated single-step vertical animations.
+         * @param {number} velocity The calculated swipe velocity.
+         */
+        async function spinAndLand(velocity) {
+            if (isAnimating) return;
+            isAnimating = true;
+            resetAutoSlide(); // Pause auto-slide during spin
+
+            const stepsToSpin = Math.floor(Math.random() * (CHANCE_MAX_SPIN - CHANCE_MIN_SPIN + 1)) + CHANCE_MIN_SPIN;
+            const direction = -1; // Spinning downwards (Previous slide/content moves down)
+            const styleKey = 'simpleVertical';
+            const style = animationStyles[styleKey];
+
+            // 1. Perform rapid 'spin' steps
+            for (let i = 0; i < stepsToSpin; i++) {
+                const oldIndex = currentIndex;
+                // Calculate next index (moves backward/downwards)
+                let newIndex = (currentIndex + direction); 
+                newIndex = (newIndex % images.length + images.length) % images.length; 
+                
+                const currentSlide = slidesContainer.children[oldIndex];
+                const nextSlide = slidesContainer.children[newIndex];
+
+                // Prepare next slide (comes from the bottom)
+                nextSlide.style.transition = 'none'; 
+                nextSlide.style.opacity = '0';
+                nextSlide.style.transform = style.in(direction).startTransform; // Starts from 100% Y
+
+                // Force reflow
+                nextSlide.offsetWidth; 
+
+                // Apply very fast animation properties
+                // Slow down slightly on the last step for a 'thud' feel
+                const currentDuration = i < stepsToSpin - 1 ? CHANCE_STEP_DURATION : CHANCE_STEP_DURATION * 3; 
+                
+                // Set transition for current slide out
+                currentSlide.style.transition = `transform ${currentDuration * 0.7}ms ease-out, opacity ${currentDuration * 0.7}ms ease-out`;
+                currentSlide.style.transform = style.out(direction); // Moves down to -100% Y
+                currentSlide.style.opacity = '0';
+
+                // Set transition for next slide in
+                nextSlide.style.transition = `transform ${currentDuration}ms ${style.in(direction).bezier}, opacity ${currentDuration * 0.5}ms ease-in`;
+                nextSlide.style.transform = style.in(direction).transform; // Moves to 0% Y
+                nextSlide.style.opacity = '1';
+
+                // Wait for the step duration
+                await new Promise(resolve => setTimeout(resolve, currentDuration));
+
+                // Clean up previous slide
+                currentSlide.style.transition = 'none';
+                currentSlide.style.transform = 'none';
+                currentSlide.classList.remove('active'); 
+
+                // Set new active slide
+                nextSlide.classList.add('active'); 
+                currentIndex = newIndex;
+                updateTitleAndDots(); // Update dots and title on every step for "spinning" effect
+            }
+            
+            // Final cleanup and state update
+            isAnimating = false;
+            resetAutoSlide();
+        }
+
+        /**
+         * Updates the title text and the active state of the navigation dots.
+         */
+        function updateTitleAndDots() {
+            imageTitleEl.textContent = images[currentIndex].title;
+
+            Array.from(dotsContainer.children).forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentIndex);
+            });
+        }
+
+        /**
+         * Navigates the slider, calculating steps and animation duration based on velocity (for user swipe).
+         * @param {number} direction -1 for previous, 1 for next.
+         * @param {number} velocity The calculated swipe velocity.
+         * @param {string} styleKey The animation style ('simpleHorizontal' or 'simpleVertical').
+         */
+        function navigateSlider(direction, velocity, styleKey) {
+            if (isAnimating) return;
+
+            // --- User Swipe Logic: Always move one step ---
+            let steps = 1; 
+            let animationDurationMs;
+
+            // Use velocity only to determine animation speed (faster swipe = snappier animation)
+            if (velocity < 0.4) {
+                animationDurationMs = 700; // Slow swipe, slow animation
+            } else if (velocity < 0.8) {
+                animationDurationMs = 400; // Medium swipe, medium animation
+            } else {
+                animationDurationMs = 200; // Fast swipe, very quick animation
+            }
+            
+            const oldIndex = currentIndex;
+            let newIndex = (currentIndex + (direction * steps));
+            newIndex = (newIndex % images.length + images.length) % images.length;
+
+            if (oldIndex === newIndex) { 
+                isAnimating = false; 
+                return; 
+            }
+            
+            // Use the passed styleKey (simpleHorizontal or simpleVertical)
+            animateOutAndIn(newIndex, direction, animationDurationMs, styleKey);
+            resetAutoSlide(); // Reset timer after user interaction
+        }
+
+        // --- Initialization and Event Listeners ---
+        
+        /**
+         * Creates individual image elements and navigation dots.
+         */
+        function createElements() {
+            images.forEach((image, index) => {
+                // Create Image Slide
+                const imgEl = document.createElement('img');
+                imgEl.src = image.src;
+                imgEl.alt = image.title;
+                imgEl.className = 'image-slide'; 
+                
+                if (index === 0) {
+                    imgEl.classList.add('active'); 
+                    imgEl.style.opacity = '1';
+                }
+                slidesContainer.appendChild(imgEl);
+
+                // Create Navigation Dot
+                const dot = document.createElement('span');
+                dot.className = 'dot';
+                dot.addEventListener('click', () => {
+                    if (isAnimating || index === currentIndex) return;
+
+                    const direction = index > currentIndex ? 1 : -1;
+                    
+                    // Use a default animation duration for dot clicks
+                    const animationDurationMs = 600; 
+                    
+                    // Dot clicks always use the simpleHorizontal slide
+                    animateOutAndIn(index, direction, animationDurationMs, 'simpleHorizontal');
+                    resetAutoSlide(); 
+                });
+                dotsContainer.appendChild(dot);
+            });
+        }
+
+        // 1. Mobile Swipe/Touch Handlers
+        sliderEl.addEventListener('touchstart', (e) => {
+            if (isAnimating) return;
+            touchstartX = e.changedTouches[0].screenX;
+            touchstartY = e.changedTouches[0].screenY; 
+            touchstartTime = Date.now(); 
+        }, false);
+
+        sliderEl.addEventListener('touchend', (e) => {
+            if (isAnimating) return;
+            touchendX = e.changedTouches[0].screenX;
+            touchendY = e.changedTouches[0].screenY; 
+            touchendTime = Date.now();   
+            handleGesture();
+        }, false);
+
+        /**
+         * Determines the direction and speed of the swipe to trigger navigation or the chance machine.
+         */
+        function handleGesture() {
+            if (isAnimating) return;
+
+            const deltaX = touchendX - touchstartX;
+            const deltaY = touchendY - touchstartY; 
+            const deltaTime = touchendTime - touchstartTime; 
+            
+            // Check for enough distance and time on either axis
+            if (deltaTime > minSwipeTime && (Math.abs(deltaX) > minSwipeDistance || Math.abs(deltaY) > minSwipeDistance)) { 
+                
+                let direction;
+                // Use the greater movement distance to calculate velocity
+                const velocity = Math.max(Math.abs(deltaX), Math.abs(deltaY)) / deltaTime; 
+                let styleKey;
+
+                // Determine if Horizontal or Vertical based on the greater delta
+                if (Math.abs(deltaY) > Math.abs(deltaX)) {
+                    // Vertical Swipe (Up/Down)
+                    direction = deltaY < 0 ? 1 : -1; // Next (swipe up) / Previous (swipe down)
+                    styleKey = 'simpleVertical';
+                } else {
+                    // Horizontal Swipe (Left/Right)
+                    direction = deltaX < 0 ? 1 : -1; // Next (swipe left) / Previous (swipe right)
+                    styleKey = 'simpleHorizontal';
+                }
+                
+                // Only navigate if a minimum distance was achieved in the primary direction
+                if ((styleKey === 'simpleHorizontal' && Math.abs(deltaX) > minSwipeDistance) || 
+                    (styleKey === 'simpleVertical' && Math.abs(deltaY) > minSwipeDistance)) {
+                    
+                    // --- CHANCE MACHINE LOGIC ---
+                    // Triggers if it's a fast DOWNWARD vertical swipe
+                    const isFastDownSwipe = styleKey === 'simpleVertical' && direction === -1 && velocity >= CHANCE_VELOCITY_THRESHOLD;
+
+                    if (isFastDownSwipe) {
+                        spinAndLand(velocity);
+                    } else {
+                        navigateSlider(direction, velocity, styleKey);
+                    }
+                    // ---------------------------------
+                }
+            }
+        }
+
+        // 2. Initial Setup
+        window.onload = () => {
+            createElements(); 
+            updateTitleAndDots(); 
+            isAnimating = false; 
+            resetAutoSlide(); // Start the auto-slide loop initially
+        };
+
+    </script>
+</body>
+</html>

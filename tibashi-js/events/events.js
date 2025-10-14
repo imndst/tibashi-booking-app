@@ -25,26 +25,38 @@ export async function initEvents() {
   }
 
   searchInput.addEventListener("input", filterEvents);
-
+const footer = document.querySelector("footer.footer");
+          if (footer) {
+            footer.style.position = "fixed"; // or "relative"
+            footer.style.display= "block"; 
+          }
   // -------------------------
   // Categories
   // -------------------------
-  function setupCategories() {
-    const gnes = ["همه", ...new Set(allEvents.map((e) => e.gne))];
-    categoriesNav.innerHTML = "";
+function setupCategories() {
+  // Normalize gne values, replace null/empty with "سایر"
+  const gnes = [
+    "همه",
+    ...new Set(
+      allEvents.map((e) => (e.gne && e.gne.trim() ? e.gne : "سایر"))
+    ),
+  ];
 
-    gnes.forEach((g) => {
-      const btn = document.createElement("button");
-      btn.textContent = g;
-      btn.className = g === "همه" ? "tibashi-cat-btn tibashi-cat-active" : "tibashi-cat-btn";
-      btn.onclick = () => {
-        activeCategory = g;
-        filterEvents();
-        updateCategoryButtons();
-      };
-      categoriesNav.appendChild(btn);
-    });
-  }
+  categoriesNav.innerHTML = "";
+
+  gnes.forEach((g) => {
+    const btn = document.createElement("button");
+    btn.textContent = g;
+    btn.className = g === "همه" ? "tibashi-cat-btn tibashi-cat-active" : "tibashi-cat-btn";
+    btn.onclick = () => {
+      activeCategory = g;
+      filterEvents();
+      updateCategoryButtons();
+    };
+    categoriesNav.appendChild(btn);
+  });
+}
+
 
   function updateCategoryButtons() {
     Array.from(categoriesNav.children).forEach((btn) => {
@@ -55,19 +67,26 @@ export async function initEvents() {
   // -------------------------
   // Filter
   // -------------------------
-  function filterEvents() {
-    const query = searchInput.value.toLowerCase();
-    filteredEvents = allEvents.filter(
-      (e) =>
-        (activeCategory === "همه" || e.gne === activeCategory) &&
-        (e.name.toLowerCase().includes(query) ||
-         e.location.toLowerCase().includes(query) ||
-         e.gne.toLowerCase().includes(query))
-    );
+ function filterEvents() {
+  const query = searchInput.value.toLowerCase();
 
-    renderEvents(filteredEvents);
-    updateCategoryButtons();
-  }
+  filteredEvents = allEvents.filter((e) => {
+    // ✅ Normalize gne (if null, undefined, or empty → "سایر")
+    const gne = e.gne && e.gne.trim() ? e.gne : "سایر";
+
+    return (
+      (activeCategory === "همه" || gne === activeCategory) &&
+      (
+        (e.name && e.name.toLowerCase().includes(query)) ||
+        (e.location && e.location.toLowerCase().includes(query)) ||
+        (gne.toLowerCase().includes(query))
+      )
+    );
+  });
+
+  renderEvents(filteredEvents);
+  updateCategoryButtons();
+}
 
   // -------------------------
   // Render Event Cards

@@ -7,6 +7,18 @@
   font-weight: 700;
   font-style: normal;
 }
+#eventsContainer {
+  display: grid;
+  gap: 1rem 0; /* only vertical gap; horizontal = 0 */
+  padding: 3rem 0; /* remove horizontal padding */
+  grid-template-columns: repeat(2, 1fr); /* mobile: 2 per row */
+}
+.event-container {
+ 
+  padding: 3rem 0; 
+ 
+}
+
 
 /* ====== Global Theme Variables ====== */
 :root {
@@ -170,6 +182,8 @@ main.content {
   border-radius: 10px;
   background: var(--color-surface);
   color: var(--color-text);
+  font-family: 
+'dana';
 }
 
 /* ===== Overlay for slide menu ===== */

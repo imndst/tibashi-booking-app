@@ -17,7 +17,7 @@ export function createCountdownTimer(duration = 120, onTick, onEnd) {
         intervalId = null;
         if (typeof onEnd === "function") onEnd();
       }
-    }, 1000);
+    }, 100000);
   };
 
   const stop = () => {
