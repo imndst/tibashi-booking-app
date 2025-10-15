@@ -43,7 +43,6 @@ export function initVerifyPhone(containerSelector, redirectQueryParam = "next") 
   // ✅ بررسی لاگین و نمایش پروفایل یا فرم OTP
   async function checkLogin() {
     const token = localStorage.getItem("jwt_token");
-    console.log("tibashi....v2")
     if (!token) {
       renderOtpForm();
       return;
@@ -130,12 +129,29 @@ export function initVerifyPhone(containerSelector, redirectQueryParam = "next") 
         body: JSON.stringify({ phone, otp })
       });
       const data = await res.json();
-      console.log(data.token)
-      if (data.status  && data.token) {
+
+      if (data.status && data.token) {
+        // ذخیره توکن در localStorage
         localStorage.setItem("jwt_token", data.token);
         successEl.textContent = "✅ تأیید شد! در حال انتقال...";
-        const redirectUrl = new URLSearchParams(window.location.search).get(redirectQueryParam) || "/profile";
-      
+
+        // --- Preserve redirect URL ---
+        let redirectUrl = "/profile"; // default fallback
+        const redirectParam = new URLSearchParams(window.location.search).get(redirectQueryParam);
+        if (redirectParam) {
+          if (redirectParam.startsWith("/")) {
+            redirectUrl = redirectParam; // full path from query
+          } else {
+            redirectUrl = "/" + redirectParam; // relative path
+          }
+        } else {
+          redirectUrl = window.location.pathname || "/profile"; // fallback to current path
+        }
+
+        setTimeout(() => {
+          window.location.href = redirectUrl;
+        }, 1000);
+
       } else {
         errorEl.textContent = "❌ " + (data.message || "کد OTP اشتباه است.");
       }

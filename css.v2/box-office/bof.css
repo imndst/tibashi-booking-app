@@ -1,0 +1,334 @@
+/* ===== Tibashi Box Office Component ===== */
+#box-office {
+  --bg: var(--color-bg, #f9fafb);
+  --card-bg: rgba(255,255,255,0.04);
+  --glass-border: rgba(255,255,255,0.06);
+  --accent-1: #7dd3fc; /* cyan */
+  --accent-2: #a78bfa; /* purple */
+  --accent-3: #fb7185; /* rose */
+  --glass-blur: 10px;
+  --radius: 14px;
+  --gap: 18px;
+  --card-shadow: 0 8px 30px rgba(2,6,23,0.1);
+  --max-width: 1200px;
+  --text: var(--color-text, #111);
+  --muted: var(--color-muted, #6b7280);
+
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+  padding: 28px;
+  border-radius: 18px;
+  max-width: var(--max-width);
+  margin: 24px auto;
+  box-shadow: var(--card-shadow);
+  border: 1px solid rgba(0,0,0,0.05);
+  font-family: var(--font-family, Inter, sans-serif);
+  background-color: var(--color-surface, #fff);
+}
+
+/* Title */
+#box-office .tibashi-box-title {
+  font-size: 1.35rem;
+  color: var(--text);
+  margin: 0 0 18px 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: 0.2px;
+  position: relative;
+}
+
+#box-office .tibashi-box-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  height: 3px;
+  width: 72px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--accent-1), var(--accent-2), var(--accent-3));
+  animation: slideGlow 3.2s linear infinite;
+  opacity: 0.95;
+}
+
+@keyframes slideGlow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+/* Grid Layout — 2 per row on mobile */
+#box-office .tibashi-box-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--gap);
+  align-items: stretch;
+}
+
+/* Card */
+#box-office .tibashi-box-card {
+  position: relative;
+  padding: 18px;
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border, #e5e7eb);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+#box-office .tibashi-box-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+}
+
+/* Accent glow */
+#box-office .tibashi-box-card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: calc(var(--radius) + 1px);
+  background: linear-gradient(120deg, rgba(125,211,252,0.08), rgba(167,139,250,0.06), rgba(251,113,133,0.05));
+  z-index: 0;
+}
+
+/* Text & Labels */
+#box-office .tibashi-box-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 6px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#box-office .tibashi-box-name::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--accent-1), var(--accent-2));
+}
+
+#box-office .tibashi-box-count,
+#box-office .tibashi-box-time,
+#box-office .tibashi-box-price {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 6px 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+#box-office .tibashi-box-count span,
+#box-office .tibashi-box-time span,
+#box-office .tibashi-box-price span {
+  color: var(--text);
+  font-weight: 700;
+  min-width: 56px;
+  text-align: right;
+}
+
+/* Badge */
+#box-office .tibashi-badge {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(125,211,252,0.08), rgba(167,139,250,0.06));
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
+/* Hover shimmer */
+#box-office .tibashi-box-card::after {
+  content: "";
+  position: absolute;
+  top: -40%;
+  left: -40%;
+  width: 40%;
+  height: 180%;
+  background: linear-gradient(120deg, rgba(255,255,255,0.02), rgba(255,255,255,0.12), rgba(255,255,255,0.02));
+  transform: rotate(20deg) translateX(-120%);
+  transition: transform .9s ease, opacity .6s;
+  opacity: 0;
+}
+
+#box-office .tibashi-box-card:hover::after {
+  transform: rotate(20deg) translateX(30%);
+  opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 620px) {
+  #box-office {
+    padding: 16px;
+  }
+  #box-office .tibashi-box-grid {
+    grid-template-columns: repeat(2, 1fr); /* ✅ two per row on mobile */
+    gap: 12px;
+  }
+  #box-office .tibashi-box-name {
+    font-size: 0.95rem;
+  }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  #box-office *,
+  #box-office *::before,
+  #box-office *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+
+/* ===== Tibashi Gishot Profiles (Circle Avatar Style) ===== */
+#gishot-in {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+  padding: 28px;
+  border-radius: 18px;
+  max-width: 1200px;
+  margin: 24px auto;
+  box-shadow: 0 8px 30px rgba(2,6,23,0.08);
+  border: 1px solid rgba(0,0,0,0.05);
+  font-family: var(--font-family, "dana", sans-serif);
+  background-color: var(--color-surface);
+}
+
+/* Section Title */
+#gishot-in .tibashi-profiles-title {
+  font-size: 1.35rem;
+  color: var(--color-text);
+  margin: 0 0 22px 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: 0.2px;
+  position: relative;
+}
+
+#gishot-in .tibashi-profiles-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  height: 3px;
+  width: 72px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #7dd3fc, #a78bfa, #fb7185);
+  animation: slideGlow 3.2s linear infinite;
+  opacity: 0.9;
+}
+
+/* Grid */
+#gishot-in .tibashi-profiles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+  justify-items: center;
+  align-items: start;
+}
+
+/* Card */
+#gishot-in .tibashi-profile-card {
+  position: relative;
+  padding: 20px 10px;
+  border-radius: 18px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+  backdrop-filter: blur(10px) saturate(120%);
+  text-align: center;
+  transition: transform .36s cubic-bezier(.2,.9,.28,1), box-shadow .36s;
+  overflow: hidden;
+  cursor: default;
+}
+
+#gishot-in .tibashi-profile-card:hover {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 16px 40px rgba(2,6,23,0.15);
+}
+
+/* ==== Circle Avatar with Border Line ==== */
+#gishot-in .tibashi-profile-img {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 12px;
+  display: block;
+  border: 3px solid transparent;
+  background-image: linear-gradient(var(--color-surface), var(--color-surface)), 
+    linear-gradient(135deg, #7dd3fc, #a78bfa, #fb7185);
+  background-origin: border-box;
+  background-clip: content-box, border-box;
+  transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+}
+
+#gishot-in .tibashi-profile-card:hover .tibashi-profile-img {
+  transform: scale(1.08);
+  box-shadow: 0 0 20px rgba(125,211,252,0.3);
+}
+
+/* Name */
+#gishot-in .tibashi-profile-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-top: 6px;
+  z-index: 1;
+  position: relative;
+}
+
+/* Loader / No Data */
+#gishot-in .tibashi-loader {
+  border: 4px solid rgba(255,255,255,0.2);
+  border-top: 4px solid #a78bfa;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  animation: spin 1s linear infinite;
+  margin: 40px auto;
+}
+
+/* Animations */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes slideGlow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+/* Responsive */
+@media (max-width: 620px) {
+  #gishot-in {
+    padding: 16px;
+  }
+  #gishot-in .tibashi-profiles-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  #gishot-in .tibashi-profile-img {
+    width: 90px;
+    height: 90px;
+  }
+  #gishot-in .tibashi-profile-name {
+    font-size: 0.9rem;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  #gishot-in *,
+  #gishot-in *::before,
+  #gishot-in *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

@@ -36,7 +36,7 @@ export async function renderComments(ev, tabContent, page = 1) {
         <div class="tibashi-rating-stars">
           ${[1, 2, 3, 4, 5].map(() => `<span class="star disabled">☆</span>`).join("")}
         </div>
-        <a href="/account/?redirect=${encodeURIComponent(window.location.href)}" class="tibashi-login-link">وارد شوید</a>
+        <a href="/account/?redirect=${(window.location.href)}" class="tibashi-login-link">وارد شوید</a>
       </div>
     `;
 

@@ -9,19 +9,12 @@ import showCustomAlert from "../../alert/showCustomAlert.js";
 import { getSeatClass } from "../../../utils.js";
 import { createCountdownTimer } from "./components/Timer.js";
 import { deleteTempSeats } from "../../../utils.js";
-// Load CSS
-const css = document.createElement("link");
-css.rel = "stylesheet";
-css.href = "../b/custom.css";
-document.head.appendChild(css);
+import "../../../tibashi-asset/panzoom.min.js";
 
-// Selected Seats Header Style
-const style = document.createElement("style");
 
-document.head.appendChild(style);
-
-// Build Seat Plan
 let globalSeatNumberMap = [];
+let seatSelectionTimer = null;
+
 export function buildSeatPlan(
   seatData,
   book = [],
@@ -44,18 +37,30 @@ export function buildSeatPlan(
   } = hallInfo;
 
   let mapWidth = 0,
-    mapHeight = 320;
-  if (Array.isArray(area) && area.length === 2) {
-    [mapWidth, mapHeight] = area;
-  }
-  const dateObj = new Date(time);
+    mapHeight = 320,
+    panLeft = 0,
+    panTop = 0;
 
+  let marea = area;
+  if (typeof marea === "string") {
+    try {
+      marea = JSON.parse(marea);
+    } catch (err) {
+      console.error("Invalid area format:", area);
+      marea = [];
+    }
+  }
+
+  if (Array.isArray(marea) && marea.length === 4) {
+    [mapWidth, mapHeight, panLeft, panTop] = marea.map(Number);
+  }
+
+  const dateObj = new Date(time);
   const persianDate = dateObj.toLocaleDateString("fa-IR", {
     weekday: "long",
     day: "numeric",
     month: "long",
   });
-
   const persianTime = dateObj.toLocaleTimeString("fa-IR", {
     hour: "2-digit",
     minute: "2-digit",
@@ -63,17 +68,17 @@ export function buildSeatPlan(
   });
 
   const seatMapStyle = `
-    width:100%;
     direction:${aligment === 1 ? "rtl" : "ltr"};
-    transform:scale(${scale});
-    min-height:${mapHeight}px
+    min-height:${mapHeight}px;
+    overflow:hidden;
+    position:relative;
+    touch-action:none;
   `;
 
   let seatMapHtml = `
     <div class="tibashi-seat-wrapper">
       <div id="selected-seats-header" class="selected-seats-header">
         <span>${persianDate}-${persianTime}</span>
-       
       </div>
   `;
 
@@ -101,23 +106,18 @@ export function buildSeatPlan(
   }
 
   // Stage
-  // Normalize width/height
   let Formatedwidth = parseInt(width, 10);
   let Formatedheight = parseInt(height, 10);
-
-  // Fallback width = 350px if width invalid
   let stageStyle = `
-  width:${isNaN(Formatedwidth) ? "300px" : Formatedwidth + "px"};
-  height:${isNaN(Formatedheight) ? "unset" : Formatedheight + "px"};
-`;
+    width:${isNaN(Formatedwidth) ? "300px" : Formatedwidth + "px"};
+    height:${isNaN(Formatedheight) ? "unset" : Formatedheight + "px"};
+  `;
 
-  // Helper to format top/left
   function formatPx(value) {
     const num = parseInt(value, 10);
-    return isNaN(num) ? null : `${num}px`; // null if invalid
+    return isNaN(num) ? null : `${num}px`;
   }
 
-  // Apply positioning
   const topVal = formatPx(top);
   const leftVal = formatPx(left);
 
@@ -125,17 +125,18 @@ export function buildSeatPlan(
     stageStyle +=
       topVal && leftVal
         ? `position:absolute; top:${topVal}; left:${leftVal};`
-        : `margin: 0 auto;`; // center if invalid
+        : `margin: 0 auto;`;
   } else {
     stageStyle +=
       topVal && leftVal
         ? `margin-top:${topVal}; margin-left:${leftVal};`
-        : `margin: 18px auto;`; // center if invalid
+        : `margin: 18px auto;`;
   }
 
-  // Build HTML
-  seatMapHtml += `<div id="seat-map" class="tibashi-seat-map" style="${seatMapStyle}">`;
-  seatMapHtml += `<div class="Stage" style="${stageStyle}">صحنه</div>`;
+  seatMapHtml += `<div id="seat-map" class="tibashi-seat-map" style="${seatMapStyle}">
+    <div id="seat-map-inner" >
+      <div class="Stage" style="${stageStyle}">صحنه</div>
+  `;
 
   let globalSeatId = 0;
 
@@ -166,16 +167,15 @@ export function buildSeatPlan(
           : `width:${pad || width}px`
         : null,
       row.seat_align === "RTL" ? `direction:RTL` : null,
-    ].filter((part) => part && !part.includes("unset")); // remove empty or unset
+    ].filter((part) => part && !part.includes("unset"));
 
     const style = styleParts.join("; ");
-
     const rowTitle = row.row_title?.trim() || rowIndex + 1;
+
     seatMapHtml += `
-      <div class="RowContainer" data-idrow="${rowIndex}"  data-price="${
+      <div class="RowContainer" data-idrow="${rowIndex}" data-price="${
       parseInt(row.row_price || 0, 10) / 10
-    }" 
-           style="${style}">
+    }" style="${style}">
         <span class="RowHeader">${rowTitle}</span>
     `;
 
@@ -202,31 +202,29 @@ export function buildSeatPlan(
 
       seatMapHtml += `
         <span class="Seat ${seatClass}" 
-             data-seat="${globalSeatId}" 
-             data-row="${rowTitle}" 
-             data-price="${price}">
-             ${seatNumber}
+              data-seat="${globalSeatId}" 
+              data-row="${rowTitle}" 
+              data-price="${price}">
+              ${seatNumber}
         </span>`;
     }
 
     seatMapHtml += `<span class="RowEndHeader">${rowTitle}</span></div>`;
   });
 
-  seatMapHtml += `</div></div>`;
+  seatMapHtml += `</div></div></div>`;
 
+  // Price filter & panzoom setup
   setTimeout(() => {
     const filterButtons = document.querySelectorAll(".price-filter-btn");
     const allRows = document.querySelectorAll(".RowContainer");
 
     filterButtons.forEach((btn) => {
       btn.addEventListener("click", () => {
-        filterButtons.forEach((b) =>
-          b.classList.remove("tibashi-filter-active")
-        );
+        filterButtons.forEach((b) => b.classList.remove("tibashi-filter-active"));
         btn.classList.add("tibashi-filter-active");
 
         const selectedPrice = btn.dataset.price;
-
         allRows.forEach((row) => {
           const rowPrice = row.dataset.price;
           row.classList.toggle(
@@ -245,11 +243,62 @@ export function buildSeatPlan(
         }
       });
     });
-  }, 0);
+
+    const seatContainer = document.querySelector("#seat-map-inner");
+    if (!seatContainer) return;
+
+    const panZoomInstance = window.panzoom(seatContainer, {
+      maxZoom: 3,
+      minZoom: 0.3,
+      zoomSpeed: 0.085,
+      smoothScroll: true,
+      bounds: false,
+      boundsPadding: 0.2,
+    });
+
+    // initial pan & zoom
+    panZoomInstance.moveTo(0, 0);
+    panZoomInstance.zoomAbs(0, 0, scale || 1);
+
+    const zoomControls = document.createElement("div");
+    zoomControls.className = "zoom-controls";
+    zoomControls.innerHTML = `
+      <button class="zoom-btn zoom-in">+</button>
+      <button class="zoom-btn zoom-out">−</button>
+      <button class="zoom-btn zoom-reset">↺</button>
+    `;
+    zoomControls.addEventListener("mousedown", (e) => e.stopPropagation());
+    zoomControls.addEventListener("wheel", (e) => e.stopPropagation());
+    zoomControls.addEventListener("dblclick", (e) => e.stopPropagation());
+    zoomControls.addEventListener("touchstart", (e) => e.stopPropagation());
+
+    const seatMap = document.querySelector("#seat-map");
+    seatMap.appendChild(zoomControls);
+
+    const zoomStep = 0.2;
+    zoomControls.querySelector(".zoom-in").addEventListener("click", () => {
+      panZoomInstance.smoothZoom(
+        seatContainer.clientWidth / 2,
+        seatContainer.clientHeight / 2,
+        1 + zoomStep
+      );
+    });
+    zoomControls.querySelector(".zoom-out").addEventListener("click", () => {
+      panZoomInstance.smoothZoom(
+        seatContainer.clientWidth / 2,
+        seatContainer.clientHeight / 2,
+        1 - zoomStep
+      );
+    });
+    zoomControls.querySelector(".zoom-reset").addEventListener("click", () => {
+      panZoomInstance.moveTo(0, 0);
+      panZoomInstance.zoomAbs(0, 0, scale || 1);
+    });
+  }, 200);
 
   return seatMapHtml;
 }
-let seatSelectionTimer = null; // در بالای ماژول
+
 // --- Render Seats ---
 export async function renderSeats({ timeId }) {
   if (seatSelectionTimer) {
@@ -258,10 +307,9 @@ export async function renderSeats({ timeId }) {
   }
 
   const app = document.getElementById("seat-map-continer");
-  app.innerHTML = `
-    <div class="loader loader-dots"><div></div><div></div><div></div></div>
-  `;
+  app.innerHTML = `<div class="loader loader-dots"><div></div><div></div><div></div></div>`;
   await deleteTempSeats();
+
   try {
     const [seatStatusData, seatPlanData] = await Promise.all([
       fetchSeatStatus(timeId),
@@ -286,18 +334,37 @@ export async function renderSeats({ timeId }) {
     `;
 
     const seatMapElement = document.getElementById("seat-map");
-    if (seatMapElement) {
-      seatMapElement.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    if (seatMapElement) seatMapElement.scrollIntoView({ behavior: "smooth", block: "start" });
 
     const payBtn = document.getElementById("btn-pay");
     const totalEl = document.getElementById("total-price");
-    const selectedSeatsHeader = document.querySelector(".seat-numbers");
-
     let selectedSeats = [];
 
-    // Seat click
-    seatMapElement.addEventListener("click", (e) => {
+    // --- MOBILE + DESKTOP FRIENDLY SEAT SELECTION ---
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    const dragThreshold = 5;
+
+    seatMapElement.addEventListener("pointerdown", (e) => {
+      startX = e.clientX || e.touches?.[0]?.clientX;
+      startY = e.clientY || e.touches?.[0]?.clientY;
+      isDragging = false;
+    });
+
+    seatMapElement.addEventListener("pointermove", (e) => {
+      const x = e.clientX || e.touches?.[0]?.clientX;
+      const y = e.clientY || e.touches?.[0]?.clientY;
+      if (!x || !y) return;
+
+      const dx = Math.abs(x - startX);
+      const dy = Math.abs(y - startY);
+      if (dx > dragThreshold || dy > dragThreshold) isDragging = true;
+    });
+
+    seatMapElement.addEventListener("pointerup", (e) => {
+      if (isDragging) return;
+
       const seat = e.target.closest(".Seat");
       if (!seat || seat.classList.contains("booked")) return;
 
@@ -315,11 +382,7 @@ export async function renderSeats({ timeId }) {
       }
 
       const total = selectedSeats.reduce((s, x) => s + x.price, 0);
-      totalEl.textContent = `${
-        selectedSeats.length
-      } بلیت - ${total.toLocaleString()} تومان`;
-      // selectedSeatsHeader.textContent =
-      //   selectedSeats.map((s) => s.seatNumber).join(", ") || "-";
+      totalEl.textContent = `${selectedSeats.length} بلیت - ${total.toLocaleString()} تومان`;
     });
 
     seatSelectionTimer = createCountdownTimer(
@@ -330,88 +393,73 @@ export async function renderSeats({ timeId }) {
     seatSelectionTimer.start();
 
     payBtn.addEventListener("click", () => {
-      if (selectedSeats.length === 0)
-        return showCustomAlert("حداقل یک صندلی انتخاب کنید");
+      if (selectedSeats.length === 0) return showCustomAlert("حداقل یک صندلی انتخاب کنید");
+      if (selectedSeats.length > 10) return showCustomAlert("سقف خرید بلیت در هر انتخاب 10 بلیت است");
 
-      if (selectedSeats.length > 10)
-        return showCustomAlert("سقف خرید بلیت در هر انتخاب 10 بلیت است");
-
-      // Check for problematic seat arrangement
+      // Prevent single isolated seats
       const seatNumbers = selectedSeats.map((seat) => String(seat.seatNumber));
-
       const hasExactSeat = seatNumbers.some((seatNum) => {
         const seatEl = document.querySelector(`[data-seat="${seatNum}"]`);
         if (!seatEl) return false;
 
         const next = seatEl.nextElementSibling;
         const prev = seatEl.previousElementSibling;
-
         const nextNext = next?.nextElementSibling;
         const prevPrev = prev?.previousElementSibling;
 
         const isNextSeat = next?.className?.trim() === "Seat";
         const isPrevSeat = prev?.className?.trim() === "Seat";
-
         const isNextNextNotSeat = nextNext?.className?.trim() !== "Seat";
         const isPrevPrevNotSeat = prevPrev?.className?.trim() !== "Seat";
 
-        return (
-          (isNextSeat && isNextNextNotSeat) || (isPrevSeat && isPrevPrevNotSeat)
-        );
+        return (isNextSeat && isNextNextNotSeat) || (isPrevSeat && isPrevPrevNotSeat);
       });
 
-      if (hasExactSeat) {
-        return showCustomAlert(
-          " درانتخاب های خود دقت کنید صندلی تک ایجاد نشود"
-        );
-      }
+      if (hasExactSeat) return showCustomAlert("در انتخاب های خود دقت کنید صندلی تک ایجاد نشود");
 
-      // Proceed if all validations pass
       const remainingTime = seatSelectionTimer.getRemaining();
-      showCustomerModal(
-        hallInfo,
-        selectedSeats,
-        async ({ name, phone, discountCode }) => {
-          app.innerHTML = `<div class="loader loader-dots"><div></div><div></div><div></div></div>`;
+      showCustomerModal(hallInfo, selectedSeats, async ({ name, phone, discountCode }) => {
+        app.innerHTML = `<div class="loader loader-dots"><div></div><div></div><div></div></div>`;
 
-          const payload = {
-            ProgramId: programId.toString(),
-            ProgramSing: programId.toString(),
-            pval: timeId.toString(),
-            Phone: phone,
-            CustomerName: name,
-            ProgramDate: timeId.toString(),
-            ProgramTimeID: timeId.toString(),
-            discountCode: discountCode,
-            Seats: selectedSeats.map(({ seatNumber, row, price }) => ({
-              SeatId: seatNumber.toString(),
-              RowNumber: row.toString(),
-              Number: seatNumber.toString(),
-              price: price,
-            })),
-          };
+        const payload = {
+          ProgramId: programId.toString(),
+          ProgramSing: programId.toString(),
+          pval: timeId.toString(),
+          Phone: phone,
+          CustomerName: name,
+          ProgramDate: timeId.toString(),
+          ProgramTimeID: timeId.toString(),
+          discountCode: discountCode,
+          Seats: selectedSeats.map(({ seatNumber, row, price }) => ({
+            SeatId: seatNumber.toString(),
+            RowNumber: row.toString(),
+            Number: seatNumber.toString(),
+            price: price,
+          })),
+        };
 
-          try {
-            await deleteTempSeats();
-            const TiketResult = await submitTickets(payload);
-            if (!TiketResult?.status) showCustomAlert("لطفا مجدد امتحان کنید");
+        try {
+          await deleteTempSeats();
+          const TiketResult = await submitTickets(payload);
+          if (!TiketResult?.status) showCustomAlert("لطفا مجدد امتحان کنید");
 
-            const token = TiketResult?.result?.mtoken;
-            if (!token) throw new Error("توکن پرداخت دریافت نشد");
-            showCustomAlert(
-              "در حال اتصال به درگاه بانکی لطفا فیلتر شکن خود را خاموش کنید"
-            );
-            window.location.href = `https://sep.shaparak.ir/OnlinePG/SendToken?token=${token}`;
-          } catch (err) {
-            console.error("یکی از صندلی ها انتخابی شما قابل رزرو نیست");
-            location.reload();
-          }
-        },
-        remainingTime
-      );
+          const token = TiketResult?.result?.mtoken;
+          if (!token) throw new Error("توکن پرداخت دریافت نشد");
+
+          showCustomAlert("در حال اتصال به درگاه بانکی لطفا فیلتر شکن خود را خاموش کنید");
+          window.location.href = `https://sep.shaparak.ir/OnlinePG/SendToken?token=${token}`;
+        } catch (err) {
+          console.error("یکی از صندلی ها انتخابی شما قابل رزرو نیست");
+          location.reload();
+        }
+      }, remainingTime);
     });
   } catch (err) {
     console.error(err);
     app.innerHTML = `<div class="tibashi-error">❌ خطا در بارگذاری نقشه صندلی‌ها</div>`;
   }
 }
+
+
+
+

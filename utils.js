@@ -19,6 +19,7 @@ export const ENDPOINTS = {
   deleteTempSeats: `${API_BASE}/TempSeat/delete-by-temp`, // add the API endpoint
   deleteRecentByProgram: (programId) =>
     `${API_BASE}/TempSeat/delete-recent-by-program?programId=${programId}`,
+    boxOffice: `${API_BASE}/Box/BoxOffice`, // ✅ Matches BoxController route
 };
 
 export async function deleteTempSeats() {
@@ -67,9 +68,38 @@ export async function deleteRecentByProgram(programId) {
     return { status: false, message: "خطا در پاکسازی صندلی‌ها" };
   }
 }
+export async function getBoxOffice() {
+  try {
+    const res = await fetch(ENDPOINTS.boxOffice);
+    const data = await res.json();
 
+    if (!data.status) {
+      console.warn("Box office API returned error:", data.message);
+      return [];
+    }
 
+    return data.result || [];
+  } catch (err) {
+    console.error("Error fetching Box Office:", err);
+    return [];
+  }
+}
+export async function getProfiles() {
+  try {
+    const res = await fetch(ENDPOINTS.profiles);
+    const data = await res.json();
 
+    if (!data.status) {
+      console.warn("Profiles API returned error:", data.message);
+      return [];
+    }
+
+    return data.result || [];
+  } catch (err) {
+    console.error("Error fetching profiles:", err);
+    return [];
+  }
+}
 export async function checkDiscountCode(programId, discountCode) {
   try {
     const res = await fetch(ENDPOINTS.checkDiscount, {
