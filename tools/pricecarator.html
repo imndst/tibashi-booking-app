@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dynamic SQL Generator</title>
+<style>
+body {font-family: Arial, sans-serif; background: #f3f4f6; padding: 20px;}
+h1 {margin-bottom: 10px;}
+.group-container {margin-bottom: 20px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);}
+.group {display: flex; gap: 10px; margin-bottom: 8px; align-items: center;}
+.group input {padding: 6px; font-size: 14px;}
+button {padding: 6px 12px; cursor: pointer; border: none; border-radius: 4px; background: #3b82f6; color: #fff;}
+button.remove {background: #ef4444;}
+textarea {width: 100%; height: 250px; margin-top: 15px; font-family: monospace; padding: 10px; font-size: 14px; border-radius: 6px; border:1px solid #ccc;}
+.controls {margin-top:10px; display:flex; gap:6px; flex-wrap: wrap;}
+#iframeContainer {margin-top:15px; width:100%; height:400px; border:1px solid #ccc;}
+</style>
+</head>
+<body>
+
+<h1>Dynamic SQL Generator — ProgramDetails</h1>
+
+<label>ProgramData_Id:</label>
+<input type="number" id="programId" value="164906">
+<button id="previewBtn">Preview Program</button>
+
+<div id="iframeContainer">
+  <iframe id="programFrame" style="width:100%; height:100%; border:none;"></iframe>
+</div>
+
+<br>
+<label>Mode:</label>
+<button id="modeBtn">Detail Mode</button>
+
+<div class="group-container" id="groupsContainer"></div>
+
+<div class="controls">
+  <button id="addGroupBtn">+ Add Group</button>
+  <button id="generateBtn">Generate SQL</button>
+  <button id="copyBtn">Copy SQL</button>
+  <button id="downloadBtn">Download .sql</button>
+</div>
+
+<textarea id="sqlOutput" placeholder="Generated SQL will appear here..."></textarea>
+
+<script>
+let placeMode = false;
+const sqlOutput = document.getElementById('sqlOutput');
+
+const modeBtn = document.getElementById('modeBtn');
+modeBtn.addEventListener('click', () => {
+    placeMode = !placeMode;
+    modeBtn.textContent = placeMode ? 'Place Mode' : 'Detail Mode';
+    sqlOutput.value = ''; // Clear SQL when switching mode
+});
+
+const container = document.getElementById('groupsContainer');
+
+function createGroup(name='', details='', price='') {
+    const div = document.createElement('div');
+    div.className = 'group';
+    div.innerHTML = `
+        <input type="text" placeholder="Group Name" value="${name}" class="grpName">
+        <input type="text" placeholder="Details (comma-separated)" value="${details}" class="grpDetails">
+        <input type="number" placeholder="Price" value="${price}" class="grpPrice">
+        <button type="button" class="remove">X</button>
+    `;
+    div.querySelector('.remove').addEventListener('click', () => div.remove());
+    container.appendChild(div);
+}
+
+// Initial sample groups
+createGroup('L','L 1,L 2,L 3','150');
+createGroup('R','R 1,R 2,R 3','150');
+createGroup('C','C 1,C 2,C 3','200');
+
+document.getElementById('addGroupBtn').addEventListener('click', () => createGroup());
+
+function generateSQL() {
+    const programId = document.getElementById('programId').value || '0';
+    const groups = Array.from(document.querySelectorAll('.group'));
+    let lines = [];
+    
+    const column = placeMode ? 'place' : 'Details';
+    lines.push(`UPDATE ProgramDetails`);
+    lines.push(`SET Price = CASE`);
+    
+    let allItems = [];
+    
+    groups.forEach(g => {
+        const rawDetails = g.querySelector('.grpDetails').value.split(',').map(d=>d.trim()).filter(Boolean);
+        const priceRaw = Number(g.querySelector('.grpPrice').value) || 0;
+        const price = priceRaw * 10000; // multiplier
+
+        let items = [];
+
+        if(placeMode) {
+            rawDetails.forEach(d => {
+                const key = d.toUpperCase();
+                if(key === 'L') for(let i=1;i<=12;i++) items.push(`L ${i}`);
+                else if(key === 'R') for(let i=1;i<=12;i++) items.push(`R ${i}`);
+                else if(key === 'C') items.push('C 1','C 2','C 3','C 4','C 6','C 7','C 8','C 9','C10','C11');
+                else items.push(d);
+            });
+        } else {
+            items = rawDetails;
+        }
+
+        // Split items into blocks of 3
+        for(let i=0;i<items.length;i+=3){
+            const block = items.slice(i,i+3);
+            if(block.length){
+                allItems.push(...block);
+                lines.push(`    WHEN ${column} IN (${block.map(x=>`'${x}'`).join(',')}) THEN ${price}`);
+            }
+        }
+    });
+
+    lines.push(`END`);
+    if(allItems.length){
+        lines.push(`WHERE ProgramData_Id = ${programId}`);
+        lines.push(`  AND ${column} IN (${allItems.map(x=>`'${x}'`).join(',')});`);
+    }
+
+    sqlOutput.value = lines.join('\n');
+}
+
+document.getElementById('generateBtn').addEventListener('click', generateSQL);
+
+document.getElementById('copyBtn').addEventListener('click', () => {
+    sqlOutput.select();
+    document.execCommand('copy');
+    alert('SQL copied to clipboard!');
+});
+
+document.getElementById('downloadBtn').addEventListener('click', () => {
+    const output = sqlOutput.value;
+    if(!output) return alert('Generate SQL first!');
+    const blob = new Blob([output], {type: 'text/sql'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'programdetails_update.sql';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+});
+
+// Preview Program button (iframe with fallback)
+document.getElementById('previewBtn').addEventListener('click', () => {
+    const programId = document.getElementById('programId').value.trim();
+    if(!programId) return alert('Enter ProgramData_Id first.');
+    const url = `https://gishot.ir/e?m=${programId}`;
+    const iframe = document.getElementById('programFrame');
+    try {
+        iframe.src = url;
+    } catch (err) {
+        alert('Cannot load in iframe. Opening in a new tab.');
+        window.open(url, '_blank');
+    }
+});
+</script>
+
+</body>
+</html>

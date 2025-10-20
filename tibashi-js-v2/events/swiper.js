@@ -1,6 +1,31 @@
 import { fetchSlides, BASE_URL } from "../../utils.js";
+import '../../tibashi-asset/swiper-bundle.min.js'
+
+// Dynamically load Swiper CSS & JS from CDN
+async function loadSwiperCDN() {
+  // Load CSS
+  if (!document.querySelector('link[href*="swiper-bundle.min.css"]')) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = '../../tibashi-asset/swiper-bundle.min.css';
+    document.head.appendChild(link);
+  }
+
+  // Load JS
+  if (!window.Swiper) {
+    await new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = '../../tibashi-asset/swiper-bundle.min.js'
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  }
+}
 
 export async function initImageCarousel(container) {
+  await loadSwiperCDN(); // Ensure Swiper is loaded
+
   const slidesData = await fetchSlides();
   const images = slidesData || [];
 
@@ -9,56 +34,60 @@ export async function initImageCarousel(container) {
     return;
   }
 
-  // Add base class
-  container.classList.add("carousel-container");
-
-  // Create structure
+  // Build the Swiper HTML dynamically
   container.innerHTML = `
-    <div class="owl-carousel owl-theme"></div>
-    <div class="carousel-overlay">
-      <h2 class="carousel-title"></h2>
+    <div class="swiper mySwiper">
+      <div class="swiper-wrapper">
+        ${images
+          .map(
+            (slide, index) => `
+          <div class="swiper-slide" data-id="${slide.id}">
+            <img src="${BASE_URL}/${slide.imgDesk}" alt="Slide ${index}" />
+          </div>
+        `
+          )
+          .join("")}
+      </div>
+      <div class="swiper-pagination"></div>
     </div>
   `;
 
-  const owlContainer = container.querySelector(".owl-carousel");
-  const titleEl = container.querySelector(".carousel-title");
-
-  // Create slides
-  images.forEach((img) => {
-    const slide = document.createElement("div");
-    slide.classList.add("item");
-    slide.innerHTML = `
-      <img 
-        src="${img.imgDesk.startsWith("http") ? img.imgDesk : `${BASE_URL}/${img.imgDesk}`}" 
-        alt="slide" 
-        class="carousel-image"
-      />
-    `;
-    owlContainer.appendChild(slide);
-  });
-
-  // Initialize Owl Carousel
-  $(owlContainer).owlCarousel({
-    items: 1,
+  // Initialize Swiper
+  const swiper = new Swiper('.mySwiper', {
+    slidesPerView: 2, // default for desktop
+    spaceBetween: 10,
     loop: true,
-    autoplay: true,
-    autoplayTimeout: 5000,
-    autoplayHoverPause: true,
-    smartSpeed: 600,
-    dots: true,
-    nav: true,
-    rtl: true, // since you have Persian text (RTL)
-    navText: ["<", ">"],
-    onChanged: (event) => updateTitle(event.item.index),
+    centeredSlides: true,
+    pagination: { el: '.swiper-pagination', clickable: true },
+    grabCursor: true,
+    freeMode: false,
+    autoplay: {
+      delay: 2500,
+      disableOnInteraction: false,
+    },
+    breakpoints: {
+      0: { // mobile
+        slidesPerView: 1,
+        spaceBetween: 10,
+        centeredSlides: false, // better for single slide on mobile
+        pagination:false
+      },
+      769: { // desktop
+        slidesPerView: 2,
+        spaceBetween: 10,
+        centeredSlides: true,
+      },
+    },
   });
 
-  // Function to update title text
-  function updateTitle(index) {
-    // `index` includes cloned slides in Owl, so normalize
-    const realIndex = (index - 2 + images.length) % images.length;
-    titleEl.textContent = `اسلاید ${realIndex + 1} از ${images.length}`;
-  }
-
-  // Set initial title
-  updateTitle(0);
+  // Add click event to each slide to navigate
+  container.querySelectorAll(".swiper-slide").forEach((slide) => {
+    slide.addEventListener("click", () => {
+      const id = slide.dataset.id;
+      if (id) {
+        window.history.pushState({}, "", `/e/${id}`);
+        dispatchEvent(new PopStateEvent("popstate"));
+      }
+    });
+  });
 }

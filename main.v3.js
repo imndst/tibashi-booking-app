@@ -12,9 +12,8 @@ const routes = [
     view: async () => {
       document.getElementById("app").innerHTML = `
         <section class="main">
-          <div id="swiperContainer" class="tibashi-slider-container"></div>
           <div id="eventsSection">
-            <div id="slider"></div>
+            <div id="tibashi-slider-container"></div>
             <nav id="categoriesNav" class="tibashi-categories"></nav>
             <input type="text" id="searchInput" placeholder="جستجو..." class="tibashi-search"/>
             <div id="eventsContainer"></div>
@@ -26,7 +25,7 @@ const routes = [
       
       `;
 
-      const container = document.getElementById("slider");
+      const container = document.getElementById("tibashi-slider-container");
       initImageCarousel(container);
       await initEvents();
       const viewPort = initViewPort("view-port");

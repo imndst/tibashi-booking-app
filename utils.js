@@ -1,6 +1,6 @@
 // tibashi-js/utils/api.js
-const API_BASE = "https://bdcast.gishot.ir/api";
-// const API_BASE = "https://localhost:7032/api";
+// const API_BASE = "https://bdcast.gishot.ir/api";
+const API_BASE = "https://localhost:7032/api";
 export const BASE_URL = "https://gishot.ir/";
 
 export const ENDPOINTS = {

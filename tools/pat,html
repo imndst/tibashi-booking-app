@@ -1,0 +1,110 @@
+<main style="
+  position: relative;
+  background: linear-gradient(135deg, #1f1f2e, #2e2e3e);
+  width: 100%;
+  max-width: 56rem;
+  margin: 2rem auto;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  color: #e0e0e0;
+  font-family: inherit;
+  direction: rtl;
+  text-align: right;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+">
+
+  <!-- Poster Banner -->
+  <div style="
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background-image: url('https://gishot.ir/plan/img_1760546774530_142778.jpg');
+    background-size: cover;
+    background-position: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  "></div>
+
+  <!-- Details -->
+  <div style="padding: 2rem 2.5rem; display: flex; flex-direction: column; gap: 1rem;">
+
+    <section>
+      <h2 style="
+        font-size: 2rem;
+        margin-bottom: 0.75rem;
+        color: #ffd87d;
+        text-align: center;
+        font-weight: 600;
+      ">
+        خـط چشم<br>Eyeliner
+      </h2>
+
+      <p style="margin-bottom: 1rem; color: #a0b0b8; text-align: center;">
+        نویسنده و کارگردان: نازنین ‌سالاری‌فر<br>
+        تهیه‌کننده: سجاد ‌افشاریان
+      </p>
+
+      <p style="color: #7f8c8d; margin-top: 1rem; font-weight: 500;">🎭 بازیگران (به ترتیب ورود به صحنه):</p>
+      <p style="margin-left: 1rem;">
+        حجت سادات<br>
+        ریحانه سادات حسینی<br>
+        امیر جوادزاده<br>
+        غزل ‌زهرایی<br>
+        مهلا علیزاده<br>
+        ستاره کارگر
+      </p>
+
+      <p style="color: #7f8c8d; margin-top: 1rem; font-weight: 500;">👥 گروه کارگردانی:</p>
+      <p style="margin-left: 1rem;">
+        سپینود ‌اسدزاده ‌تبریزی<br>
+        بیژن فاتحی<br>
+        حجت زحمتی‌زرندی
+      </p>
+
+      <p style="color: #7f8c8d; margin-top: 1rem; font-weight: 500;">🎨 سایر عوامل:</p>
+      <p style="margin-left: 1rem; line-height: 1.6;">
+        مدیر تولید: امیررضا نجاری<br>
+        طراح صحنه: نازنین ‌سالاری‌فر<br>
+        طراح گریم: بهار کلاهی<br>
+        طراح لباس: یاسمن دلیری<br>
+        طراح تیزر، موشن و گرافیک: حامد ‌فرهی<br>
+        آهنگساز و طراح صدا: روح‌الله محجوب<br>
+        طراح نور: سیدمحمدصالح ‌جوشن<br>
+        عکاس و فیلمبردار: سیدسامیار ‌سیدزاده<br>
+        مدیر روابط‌عمومی: صدف شیرافکن<br>
+        مجریان گریم: آیرا مطلق، مهرنوش مینا، نیلوفر ندافی، رضا میرعرب<br>
+        دستیار تولید: امیر ارسلان کمالی‌نژاد
+      </p>
+
+      <div style="
+        background: rgba(255,255,255,0.05);
+        padding: 1rem 1.5rem;
+        border-radius: 1rem;
+        margin-top: 1.5rem;
+        border-left: 3px solid #ffd87d;
+      ">
+        <h4 style="margin-bottom: 0.5rem; color: #ffd87d;">🏆 جوایز و افتخارات:</h4>
+        <p style="color: #c0c0c0;">
+          تندیس بهترین اثر جشنواره<br>
+          تندیس بهترین کارگردانی<br>
+          تندیس بهترین بازیگری مرد<br>
+          تندیس بهترین بازیگری زن<br>
+          تقدیر بهترین بازیگری مرد<br>
+          کاندیدای برترین نویسندگی<br>
+          از هشتمین جشنواره ملی تئاتر اردیبهشت
+        </p>
+      </div>
+
+      <div style="
+        background: rgba(255,255,255,0.05);
+        padding: 1rem 1.5rem;
+        border-radius: 1rem;
+        margin-top: 1rem;
+        border-left: 3px solid #ffd87d;
+      ">
+        <h4 style="margin-bottom: 0.5rem; color: #ffd87d;">🎭 ژانر و مدت:</h4>
+        <p style="color: #c0c0c0;">ژانر: اجتماعی<br>مدت نمایش: ۶۰ دقیقه</p>
+      </div>
+
+    </section>
+  </div>
+
+</main>
