@@ -1,8 +1,7 @@
-// ===== Apply theme as early as possible =====
+
 const savedTheme = localStorage.getItem("theme") || "dark";
 document.documentElement.setAttribute("data-theme", savedTheme);
 
-// Optional: prevent flicker by hiding body until layout loads
 document.body.style.visibility = "hidden";
 
 // ===== Exported function to render layout =====
@@ -15,13 +14,15 @@ export function renderLayout() {
           <span></span>
           <span></span>
         </button>
-        <div class="nav-logo">Gishot App</div>
+        <div class="nav-logo">aboomoslem</div>
       </div>
 
       <nav id="navMenu" class="nav-menu">
         <a href="/" data-link> خانه</a>
-        <a href="/account/" data-link>پیگیری</a>
+        <a href="/account" data-link=>پیگیری</a>
         <button id="themeToggle" class="theme-toggle">🌓 تغییر تم</button>
+        پشتیبانی 
+        09126886038
       </nav>
     </header>
 
@@ -103,4 +104,24 @@ export function renderLayout() {
 
   // ===== Show body after layout is ready =====
   document.body.style.visibility = "visible";
+
+
+
+document.addEventListener("click", (e) => {
+  const link = e.target.closest("[data-link]");
+  if (!link) return;
+
+  const href = link.getAttribute("href");
+
+  // Force full page reload for account link
+  if (href.startsWith("/account")) {
+    window.location.href = href; // reloads page
+    return;
+  }
+
+  e.preventDefault();
+  navigate(href);
+});
+
+
 }

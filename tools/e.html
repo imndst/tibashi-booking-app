@@ -1,0 +1,1285 @@
+<%@ Language="C#" MasterPageFile="~/Site1.Master" AutoEventWireup="true" CodeBehind="e.aspx.cs"
+    Inherits="WebApplication2.e" %>
+    <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
+        <style>
+            .blocker {
+                z-index: 960;
+            }
+
+            .loader {
+                border: 1px solid #f3f3f3;
+                border-radius: 50%;
+                border-top: 1px solid #f3f3f3;
+                width: 10px;
+                height: 10px;
+                -webkit-animation: spin 2s linear infinite;
+                /* Safari */
+                animation: spin 1s linear infinite;
+                display: inline-block
+            }
+
+            @-webkit-keyframes spin {
+                0% {
+                    -webkit-transform: rotate(0deg);
+                }
+
+                100% {
+                    -webkit-transform: rotate(360deg);
+                }
+            }
+
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+
+            .comment-area {
+                width: 300px;
+                font-family: iransans;
+
+            }
+
+            #error {
+                background-color: white !important;
+                color: red;
+                font-family: IRANSans;
+                padding: 0.2rem;
+                font-size: .7rem;
+
+            }
+
+            #comment-input {
+                width: 100%;
+                height: 100px;
+                resize: none;
+                margin-bottom: 10px;
+                font-family: iransans;
+            }
+
+            #char-count {
+                font-size: 12px;
+                color: gray;
+                font-family: iransans;
+            }
+
+            #send-button {
+                padding: 5px 10px;
+                font-family: iransans;
+                border: 1px solid gray;
+                padding: .5rem;
+                background-color: #33a107;
+                border-radius: 4px;
+                color: white;
+            }
+
+            #comment-list {
+                margin-top: 10px;
+                font-family: iransans;
+            }
+
+            .star-rating {
+                display: flex;
+                align-items: center;
+                width: 280px;
+                flex-direction: row-reverse;
+                justify-content: space-between;
+                margin: 10px auto;
+                position: relative;
+
+            }
+
+            .star-rating input {
+                display: none;
+            }
+
+            .star-rating>label {
+                width: 30px;
+                height: 30px;
+                font-family: Arial;
+                font-size: 30px;
+                transition: 0.2s ease;
+                color: cornflowerblue;
+            }
+
+            .star-rating label:hover {
+                color: #ff69b4;
+                transition: 0.2s ease;
+            }
+
+            .star-rating label:active::before {
+                transform: scale(1.1);
+            }
+
+            .star-rating label::before {
+
+                position: absolute;
+                top: 0px;
+
+            }
+
+
+
+            @-moz-document url-prefix() {
+                .star-rating input:checked~label:before {
+                    font-size: 36px;
+                    line-height: 21px;
+                }
+            }
+
+            .fa-minus {
+                --b: 4px;
+                width: 40px;
+                aspect-ratio: 1;
+                border: 10px solid #689f38;
+                background: conic-gradient(from 90deg at var(--b) var(--b), #689f38 183deg, #fff 0) calc(100% + var(--b)/2) calc(100% + var(--b)/2)/ calc(50% + var(--b)) calc(50% + var(--b));
+                display: inline-block;
+
+
+
+
+            }
+
+            .fa-plus {
+                --b: 4px;
+                width: 40px;
+                aspect-ratio: 1;
+                border: 10px solid #689f38;
+                background: conic-gradient(from 90deg at var(--b) var(--b), #689f38 90deg, #fff 0) calc(100% + var(--b)/2) calc(100% + var(--b)/2)/ calc(50% + var(--b)) calc(50% + var(--b));
+                display: inline-block;
+
+            }
+
+            .fa-plus {
+                --b: 4px;
+                width: 40px;
+                aspect-ratio: 1;
+                border: 10px solid #689f38;
+                background: conic-gradient(from 90deg at var(--b) var(--b), #689f38 90deg, #fff 0) calc(100% + var(--b)/2) calc(100% + var(--b)/2)/ calc(50% + var(--b)) calc(50% + var(--b));
+                display: inline-block;
+
+            }
+
+
+
+
+            .containerara {
+
+                /* border-bottom-left-radius: 110px 19px; */
+                /* border-bottom-right-radius: 120px 24px; */
+                display: block;
+                position: relative;
+                border: solid 3px #f3f3f3;
+                /* max-width: 800px; */
+                width: 90%;
+                margin: 10px auto 0;
+                font-size: 17px;
+                line-height: 28px;
+                transform: rotate(-1deg);
+                box-shadow: 3px 15px 8px -10px rgba(0, 0, 0, 0.3);
+                transition: all 0.13s ease-in;
+            }
+
+            .svg--sm {
+                display: none;
+            }
+
+            header {
+
+                height: 330px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                /* optional: to ensure it doesn't shrink to fit content */
+                width: 100%;
+                padding: 20px 0;
+                /* space above and below the image */
+
+            }
+
+            #aboutmovie {
+
+                /* border-bottom-left-radius: 110px 19px; */
+                /* border-bottom-right-radius: 120px 24px; */
+                display: block;
+                position: relative;
+
+
+                margin: 0px auto 0;
+                font-size: 17px;
+                line-height: 28px;
+
+            }
+
+            .h_iframe-aparat_embed_frame {
+                position: relative;
+                width: 60%;
+                margin: auto
+            }
+
+            .success_container {
+                margin: 50px;
+                max-height: 100px;
+                max-width: 100%;
+                display: block ;
+
+
+            }
+
+            .block {
+                display: flex;
+                background-color: rgba(233, 196, 106);
+                justify-content: center;
+                align-items: center;
+                width: 100%;
+            }
+
+            .block .imager {
+                width: 60px;
+                height: 70px;
+                margin: 10px;
+                z-index: 10000;
+
+            }
+
+            .message .head {
+                margin: 10px 10px 0px 10px;
+                z-index: 10000;
+                font-size: larger;
+            }
+
+            .message p {
+                margin: 10px;
+                z-index: 10000;
+            }
+
+            .undo button {
+                padding: 7px;
+                margin: 10px;
+                border: 0.5px solid #fff;
+                border-radius: 100%;
+                background-color: rgba(255, 255, 255, 0.3);
+                color: rgb(255, 255, 255);
+                font-weight: 800;
+
+            }
+
+            @media(max-width:700px) {
+                .success_container {
+                    position: absolute;
+                    max-height: 70px;
+                    max-width: 70%;
+                    left: 50px;
+                    color: white;
+                    z-index: 10000;
+
+
+
+                }
+
+                .message .head {
+                    margin: 10px 10px 0px 10px;
+                    font-weight: 600;
+
+                    font-size: medium;
+                }
+
+                .message p {
+                    font-size: small;
+                    margin: 10px;
+                }
+            }
+
+            /* Here Success alert is completed */
+            .error_container {
+                margin: 20px ;
+                max-height: 100px;
+                max-width: 100%;
+                color: white;
+
+
+
+
+            }
+
+            .error_block {
+                display: flex;
+                background-color: rgba(217, 4, 41, 0.9);
+                justify-content: center;
+                align-items: center;
+                width: 100%;
+            }
+
+            .error_block .error_imager {
+                width: 60px;
+                height: 70px;
+                margin: 10px;
+                z-index: 10000;
+
+            }
+
+            .error_message .error_head {
+                margin: 10px 10px 0px 10px;
+                z-index: 10000;
+                font-size: larger;
+            }
+
+            .error_message p {
+                margin: 10px;
+                z-index: 10000;
+            }
+
+            .error_undo button {
+                padding: 7px;
+                margin: 10px;
+                border: 0.5px solid #fff;
+                border-radius: 100%;
+                background-color: rgba(255, 255, 255, 0.3);
+                color: rgb(255, 255, 255);
+                font-weight: 800;
+
+            }
+
+            @media(max-width:700px) {
+                .error_container {
+                    position: absolute;
+                    max-height: 70px;
+                    max-width: 70%;
+                    left: 50px;
+                    color: white;
+                    z-index: 10000;
+
+
+
+                }
+
+                .error .error_head {
+                    margin: 10px 10px 0px 10px;
+                    font-weight: 600;
+
+                    font-size: medium;
+                }
+
+                .error_message p {
+                    font-size: small;
+                    margin: 10px;
+                }
+            }
+
+            a {
+                color: #fff
+            }
+
+
+            svg {
+                position: absolute;
+                bottom: 0;
+                width: 100%;
+                height: 100px;
+                right: 0;
+            }
+
+            .blocker {
+                z-index: 960;
+            }
+
+            @media only screen and (min-width:15px) and (max-width:700px) {
+                .footer {
+                    display: none;
+                }
+
+                .h_iframe-aparat_embed_frame {
+                    position: relative;
+                    width: 100%;
+                    margin: auto
+                }
+
+                .star-rating {
+                    display: flex;
+                    align-items: center;
+                    width: 90%;
+                    margin: 10px auto;
+                    flex-direction: row-reverse;
+                    justify-content: space-between;
+                    text-align: center;
+                    position: relative;
+                    right: 0
+                }
+
+                .star-rating>label {
+                    width: 20px;
+                    height: 20px;
+                    font-family: Arial;
+                    font-size: 20px;
+                    transition: 0.2s ease;
+                    color: orange;
+                }
+
+
+            }
+        </style>
+        <script src="js/notify.js"></script>
+    </asp:Content>
+    <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="Server">
+        <div id="aboutmovie" class="allevent">
+            <div
+                style="position: fixed; left: 24px; bottom: 10px; z-index: 1000; display: flex; align-items: center; direction: rtl;">
+                <a href="https://vod.gishot.ir" target="_blank" rel="noopener" title="Gishot player"
+                    aria-label="Gishot player" style="
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2575fc 0%, #6a11cb 100%);
+        color: #f0f0f0;
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3), 0 3px 6px rgba(0, 0, 0, 0.15);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: .6rem;
+        text-align: center;
+        font-family: 'Inter';
+      ">
+                  VOD Gishot 
+                </a>
+                <a href="https://vod.gishot.ir" target="_blank" rel="noopener" title="تماشای آنلاین فیلم و سریال"
+                    aria-label="تماشای آنلاین فیلم و سریال" style="
+        position: absolute;
+        left: 65px;
+        background-color: rgba(17, 17, 17, 0.9);
+        color: #f0f0f0;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 8px 14px;
+        white-space: nowrap;
+        font-size: 0.9rem;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+;
+      ">
+                    <span style="margin-left: 8px;">🎬</span>
+                    فیلم و سریال
+                </a>
+            </div>
+            <div>
+                <a class="regform" id="rate" href="#RegisterForm" rel="modal:open"></a>
+
+                <asp:PlaceHolder ID="placeholderAlldata" runat="server"></asp:PlaceHolder>
+            </div>
+            <div id="timeplan" class="paddleft continertime">
+                
+                <asp:PlaceHolder ID="PlaceHolderweek" runat="server"></asp:PlaceHolder>
+            </div>
+            <div class="conta containerpanel">
+                <div class="star-rating" style="direction: rtl">
+                    <span style="font-size:.8rem ;margin-left:30px;margin-right:30px" for="star-wea"> امتیاز دهید</span>
+                    <input type="radio" name="stars" id="star-e" value="1" />
+                    <label for="star-e"></label>
+
+                    <input type="radio" name="stars" id="star-d" value="2" />
+                    <label for="star-d"></label>
+
+                    <input type="radio" name="stars" id="star-c" value="3" />
+                    <label for="star-c"></label>
+
+                    <input type="radio" name="stars" id="star-b" value="4" />
+                    <label for="star-b"></label>
+
+
+                    <input type="radio" name="stars" id="star-a" value="5" />
+                    <label for="star-a"></label>
+
+
+                </div>
+            </div>
+
+            <div id="RegisterForm" class="modal">
+
+                <div class="Uform">
+                    <input id="pphone" type="tel" data-id="CardMR" placeholder="موبایل" autocomplete="on"
+                        pattern="[0-9]{11,11}" required="">
+
+                    <input style="display: none" id="pmsg" type="tel" data-id="CardP" placeholder="کد پیامک شده"
+                        autocomplete="on" pattern="[0-9]{11,11}" required="">
+
+
+                    <span id="nextRegister">ادامه
+
+                        <div class="loader fas fa-spinner fa-spin" style="display: none;"></div>
+                    </span>
+
+
+
+                    <span style="display: none" id="CallCode">تایید
+
+                        <div class="loader fas fa-spinner fa-spin" style="display: none;"></div>
+                    </span>
+                </div>
+                <span id="error"></span>
+
+            </div>
+            <form>
+
+                <div id="UserForm" class="modal">
+
+                    لطفا قبل از پرداخت وی پی ان خود را خاموش کنید
+
+                    <div class="Uform">
+
+                        <div>
+                            <input tabindex="1" data-id="CardName" placeholder="نام و نام خانوادگی" autocomplete="on"
+                                type="text" pattern="^(.?$|[^<].*)" required="">
+                        </div>
+
+                        <div style="display:none">
+                            <input tabindex="2" type="tel" data-id="CardC" placeholder="کدملی" name="CardC"
+                                autocomplete="on" type="text" required="">
+                        </div>
+
+                        <div>
+                            <input tabindex="3" type="tel" data-id="CardM" placeholder="موبایل" autocomplete="on"
+                                type="text" pattern="[0-9]{11,11}" required="">
+                        </div>
+
+
+                        <div id="cpinput" style="display: none">
+                            <input tabindex="4 " type="tel" data-id="CardCapt" placeholder="کد تصویر" autocomplete="on"
+                                type="text" pattern="[0-9]{11,11}" required="">
+                        </div>
+                        <div id="wcapt"></div>
+                        <br />
+
+                        <span tabindex="5" id="nextstage">پرداخت
+                            <i style="display: none" class="fas fa-spinner fa-spin"></i>
+                        </span>
+
+
+                    </div>
+                    <div>
+                    </div>
+
+                </div>
+                <div class="spinner" style="display: none">
+                    <div class="rect1"></div>
+                    <div class="rect2"></div>
+                    <div class="rect3"></div>
+                    <div class="rect4"></div>
+                    <div class="rect5"></div>
+                </div>
+
+
+            </form>
+            <asp:PlaceHolder ID="PlaceHolderactores" runat="server"></asp:PlaceHolder>
+            <div class="containerpanel" style="margin-top:1rem;width:97%;max-width:1080px;">
+                دیدگاه خریداران
+                <div class="eventactors o">
+                    <div id="rootcomment"></div>
+                </div>
+            </div>
+            <div style="margin-top:1rem" class="comment-area continertime">
+  <textarea id="comment-input"
+                placeholder="در صورتی  که قبلا بلیت تهیه کرده اید می توانید دیدگاه خود را اینجا بنویسید"></textarea>
+                <p id="char-count">0 / 150 کاراکتر</p>
+                <span id="send-button">ارسال</span>
+                <div id="comment-list"></div>
+            </div>
+        </div>
+        <div class="stframe" id="thelp" style="display: none;direction:rtl;text-align:center">
+            لطفا با توجه به نوع و تعداد بلیت درخواستی
+            روی علامت +
+            و سپس بر روی ادامه کلیک کنید.
+            <div class="spinner" style="display: none">
+                <div class="rect1"></div>
+                <div class="rect2"></div>
+                <div class="rect3"></div>
+                <div class="rect4"></div>
+                <div class="rect5"></div>
+            </div>
+            <div class="panel-seatls">
+            </div>
+        </div>
+        <div style="text-align: center">
+            <p>
+                <a style="display: none" id="payxT" href="#UserForm" rel="modal:open" class="btn">ادامه
+                </a>
+            </p>
+        </div>
+        </div>
+        <script>
+            $(document).ready(function () {
+                const container = document.querySelector('.containerpanel');
+                if (container) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const mParam = urlParams.get('m');
+
+                    const tabContainer = document.createElement('div');
+                    tabContainer.style.display = 'flex';
+                    tabContainer.style.gap = '10px';
+                  
+                    tabContainer.style.justifyContent = 'flex-start';
+                    tabContainer.style.textAlign = "right";
+                    tabContainer.style.padding = '10px';
+                    tabContainer.style.borderRadius = '8px';
+                    tabContainer.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.1)';
+
+                    const tabs = [
+                        { label: 'خرید', id: 'tab1' },
+                        { label: 'اطلاعات', id: 'tab2' },
+                        { label: 'قوانین', id: 'tab3' },
+                  
+                    ];
+
+                    const buttons = {};
+                    const galleryContainer = document.createElement('div');
+                    galleryContainer.id = "gallery";
+                    galleryContainer.style.display = "none";
+                    galleryContainer.style.flexDirection = "column";
+                    galleryContainer.style.alignItems = "center";
+                    galleryContainer.style.marginTop = "20px";
+                    galleryContainer.style.padding = "10px";
+
+                    // Modern dark color container for the gallery
+                    const galleryWrapper = document.createElement('div');
+                    galleryWrapper.style.backgroundColor = '#2e2e2e'; // Dark background color
+                    galleryWrapper.style.borderRadius = '20px';  // Rounded corners for the container
+
+                    galleryWrapper.style.padding = '20px';
+
+                    galleryWrapper.style.justifyContent = 'center';
+                    galleryWrapper.style.alignItems = 'center';  // Center the gallery content
+                    galleryWrapper.style.margin = '0 auto';  // Center the galleryWrapper within the parent container
+                    galleryWrapper.style.maxWidth = '100%';  // Maximum width of the gallery container
+                    galleryWrapper.style.overflow = 'hidden';  // Prevent overflow if the content exceeds
+
+                    let currentSlide = 0;
+                    let slideshowImage;
+                    const foundImages = [];
+                    const triedImages = new Set();
+                    let totalImages = 0; // Variable to hold the total count of valid images
+
+                    const controls = document.createElement('div');
+                    controls.style.marginTop = '10px';
+                    controls.style.display = 'flex';
+                    controls.style.gap = '10px';
+                    controls.style.justifyContent = 'center';
+                    controls.style.flexDirection = 'row-reverse'
+
+                    const prevBtn = document.createElement('button');
+                    prevBtn.textContent = 'قبلی';
+                    const nextBtn = document.createElement('button');
+                    nextBtn.textContent = 'بعدی';
+
+                    // Styling buttons with modern golden borders and font updates
+                    [prevBtn, nextBtn].forEach(btn => {
+                        btn.style.padding = '6px 12px';
+                        btn.style.border = 'none';
+                        btn.style.cursor = 'pointer';
+                        btn.style.borderRadius = '6px';
+                        btn.style.background = '#eee';
+                        btn.style.transition = 'background 0.3s';
+                        btn.style.font = 'inherit';
+                        btn.style.fontSize = '0.8rem';
+                        btn.addEventListener('mouseover', () => {
+                            btn.style.transform = 'scale(1.05)'; // Button hover effect
+                        });
+                        btn.addEventListener('mouseout', () => {
+                            btn.style.transform = 'scale(1)'; // Button reset effect
+                        });
+                    });
+
+                    // Function to check images from 0 to 10
+                    function checkImages() {
+                        let count = 0;
+
+                        for (let i = 0; i <= 10; i++) {
+                            const padded = String(i + 1).padStart(2, '0');
+                            const testSrc = `https://gishot.ir/AI/${padded}${mParam}.JPG`;
+
+                            const testImage = new Image();
+                            testImage.onload = () => {
+                                count++;
+                                console.log(`Image ${testSrc} exists!`);
+                                if (i === 10) {
+                                    totalImages = count; // Set the total number of found images
+
+                                    updateButtonStates(); // Update the button states after checking images
+                                }
+                            };
+                            testImage.onerror = () => {
+
+                                if (i === 10) {
+                                    console.log(`Total images found: ${count}`);
+                                    totalImages = count; // Set the total number of found images
+                                    updateButtonStates(); // Update the button states after checking images
+                                }
+                            };
+
+                            testImage.src = testSrc;
+                        }
+                    }
+
+                    // Function to update button states based on the current slide and total images
+                    function updateButtonStates() {
+                        if (currentSlide === 0) {
+                            prevBtn.disabled = true; // Disable prev button when at the first image
+                        } else {
+                            prevBtn.disabled = false; // Enable prev button when not at the first image
+                        }
+
+                        if (currentSlide >= totalImages - 1) {
+                            nextBtn.disabled = true; // Disable next button when at the last image
+                        } else {
+                            nextBtn.disabled = false; // Enable next button when not at the last image
+                        }
+                    }
+
+                    prevBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        if (currentSlide > 0) {
+                            currentSlide--;
+                            updateSlide(mParam);
+                        }
+                        updateButtonStates(); // Update button states after changing slide
+                    });
+
+                    nextBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        if (currentSlide < totalImages - 1) {
+                            currentSlide++;
+                            updateSlide(mParam);
+                        }
+                        updateButtonStates(); // Update button states after changing slide
+                    });
+
+                    controls.appendChild(prevBtn);
+                    controls.appendChild(nextBtn);
+
+                    slideshowImage = document.createElement('img');
+                    slideshowImage.style.maxWidth = '100%';  // Responsive image width
+                    slideshowImage.style.height = '300px';   // Set uniform height for all images
+                    slideshowImage.style.borderRadius = '17px';  // Rounded corners
+                    slideshowImage.style.boxShadow = '0 0 1px rgba(255, 223, 0, .5)'; // Gold shadow
+                    slideshowImage.style.transition = 'transform 0.3s, opacity 0.3s'; // For slide animation
+                    slideshowImage.style.margin = '10px';
+                    slideshowImage.style.objectFit = 'cover'; // Ensure image doesn't distort and retains aspect ratio
+                    slideshowImage.style.filter = 'blur(0px)'; // Initially no blur
+                    slideshowImage.style.margin = "0 auto";
+
+                    // Function to update the slide
+                    function updateSlide(mValue) {
+                        const padded = String(currentSlide + 1).padStart(2, '0');
+                        const testSrc = `https://gishot.ir/AI/${padded}${mValue}.JPG`;
+
+                        if (foundImages.includes(currentSlide)) {
+                            slideshowImage.src = testSrc;
+                            slideshowImage.alt = `تصویر ${currentSlide + 1}`;
+                            return;
+                        }
+
+                        const testImage = new Image();
+                        testImage.onload = () => {
+                            foundImages.push(currentSlide);
+                            slideshowImage.src = testSrc;
+                            slideshowImage.alt = `تصویر ${currentSlide + 1}`;
+                            fadeIn(slideshowImage); // Apply fade-in when image loads
+                        };
+                        testImage.onerror = () => {
+                            triedImages.add(currentSlide);
+
+                        };
+
+                        testImage.src = testSrc;
+                    }
+
+                    galleryWrapper.appendChild(slideshowImage);
+                    galleryWrapper.appendChild(controls);
+                    galleryContainer.appendChild(galleryWrapper);
+
+                    // Call the function to check images
+                 
+
+                    tabs.forEach(({ label, id }) => {
+                        const btn = document.createElement('button');
+                        btn.textContent = label;
+                        btn.style.padding = '8px 16px';
+                        btn.style.border = 'none';
+                        btn.style.cursor = 'pointer';
+                        btn.style.borderRadius = '8px';
+                        btn.style.background = '#22253c !important';
+                        btn.style.backgroundColor = '#22253c !important';
+                        btn.style.transition = 'background 0.3s';
+                        btn.style.font = 'inherit';
+                        btn.style.fontSize = '0.8rem';
+                        btn.style.maxHeight='38px'
+                        btn.style.lineHeight='26px'
+                             btn.style.color='#FFF'
+                        btn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            setActiveTab(id);
+                        });
+
+                        buttons[id] = btn;
+                        tabContainer.appendChild(btn);
+                    });
+
+                 
+                   container.appendChild(tabContainer);
+        
+
+                    const timeplan = document.getElementById('timeplan');
+                    const rootComment = document.getElementById('rootcomment');
+                    const eventActor = document.querySelector('.eventactors');
+
+                    if (rootComment) {
+                        const gp = rootComment.closest('div')?.parentElement;
+                        if (gp) gp.style.display = 'none';
+                    }
+
+                    if (eventActor) {
+                        const parent = eventActor.closest('div');
+                        if (parent) parent.style.display = 'none';
+                    }
+
+                    function fadeIn(el) {
+                        el.style.opacity = 0;
+                        el.style.display = 'block';
+                        el.style.transition = 'opacity 0.4s';
+                        requestAnimationFrame(() => {
+                            el.style.opacity = 1;
+                        });
+                    }
+
+                    function hideAll() {
+                        if (timeplan) timeplan.style.display = 'none';
+
+                        if (rootComment) {
+                            const gp = rootComment.closest('div')?.parentElement;
+                            if (gp) gp.style.display = '';
+                        }
+
+                        if (eventActor) {
+                            const parent = eventActor.closest('div');
+                            if (parent) parent.style.display = '';
+                        }
+
+                        galleryContainer.style.display = 'none';
+                    }
+
+                    function setActiveTab(tabId) {
+                        Object.keys(buttons).forEach((id) => {
+                            buttons[id].style.background = id === tabId ? '#E91E63' : '#424266';
+                        });
+
+                        hideAll();
+
+                        switch (tabId) {
+                            case 'tab1':
+                                if (timeplan) fadeIn(timeplan);
+                                break;
+                            case 'tab2':
+                                if (rootComment) {
+                                    const gp = rootComment.closest('div')?.parentElement;
+                                    if (gp) gp.style.display = 'none';
+                                }
+                                break;
+                            case 'tab3':
+                                if (eventActor) {
+                                    const parent = eventActor.closest('div');
+                                    if (parent) parent.style.display = 'none';
+                                }
+                                break;
+                            case 'tab4':
+                                if (mParam) {
+                                    currentSlide = 0;
+                                     // Apply fade-in effect when gallery is activated
+                                }
+                                break;
+                        }
+                    }
+
+                    container.appendChild(galleryContainer);
+                    setActiveTab('tab1');
+                } else {
+                    console.log('No element with class "containerpanel" found');
+                }
+
+
+                // Create new modern CSS styles
+                const style = document.createElement('style');
+                style.innerHTML = `
+  .HolderDay {
+    border: 1px solid #e0e0e0;
+    border-radius: 16px;
+    padding: 20px;
+    margin: 10px 10px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: #fff;
+  }
+
+  .HolderDay:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+  }
+
+  .HolderDay .headDAy {
+    font-weight: bold;
+    font-size: 0.8rem;
+    color: #333;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .HolderDay .ribbon span {
+    background: #ff4d4f;
+    color: #fff;
+    
+  }
+
+  .HolderDay a {
+    background-color: #005bbb !important;
+    color: white !important;
+    padding: 12px 24px !important;
+    border-radius: 10px !important;
+    font-size: 1rem !important;
+    font-weight: bold !important;
+    box-shadow: 0 4px 14px rgba(0, 91, 187, 0.4) !important;
+    transition: all 0.3s ease !important;
+    text-decoration: none !important;
+  }
+
+  .HolderDay a:hover {
+    background-color: #003f7f !important;
+    box-shadow: 0 6px 20px rgba(0, 91, 187, 0.5) !important;
+  }
+
+  .HolderDay span[data-snq] {
+    color: #444 !important;
+    font-size: 1rem !important;
+    margin-bottom: 10px !important;
+  }
+`;
+                document.head.appendChild(style);
+
+
+                const ratingStyles = document.createElement('style');
+                ratingStyles.innerHTML = `
+  .star-rating {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    direction: ltr !important;
+    margin-top: 10px;
+  }
+
+  .star-container {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+  }
+
+  .star-rating input {
+    display: none;
+  }
+
+  .star-rating label {
+    width: 24px;
+    height: 24px;
+    background: url('https://cdn-icons-png.flaticon.com/512/1828/1828884.png') no-repeat center;
+    background-size: contain;
+    filter: grayscale(100%) brightness(1.2);
+    cursor: pointer;
+    transition: transform 0.2s ease, filter 0.3s ease;
+  }
+
+  .star-rating label:hover,
+  .star-rating label:hover ~ label {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 4px gold);
+  }
+
+  .star-rating input:checked ~ label {
+    filter: grayscale(0%) brightness(1.2);
+  }
+
+  .star-rating input:checked + label,
+  .star-rating input:checked + label ~ label {
+    filter: drop-shadow(0 0 5px gold) saturate(2);
+  }
+
+  .star-numbers {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 4px;
+  }
+
+  .star-numbers span {
+    width: 24px;
+    text-align: center;
+    font-size: 0.65rem;
+    color: #888;
+    font-weight: 500;
+  }
+
+  @media screen and (max-width: 480px) {
+    .star-rating label {
+      width: 20px;
+      height: 20px;
+    }
+
+    .star-numbers span {
+      width: 20px;
+      font-size: 0.6rem;
+    }
+  }
+`;
+                document.head.appendChild(ratingStyles);
+
+                // Rebuild stars left to right: 1 to 5
+                const ratingEl = document.querySelector('.star-rating');
+                const originalInputs = Array.from(ratingEl.querySelectorAll('input'));
+                const originalLabels = Array.from(ratingEl.querySelectorAll('label'));
+
+                const starContainer = document.createElement('div');
+                starContainer.className = 'star-container';
+
+                for (let i = originalInputs.length - 1; i >= 0; i--) {
+                    starContainer.appendChild(originalInputs[i]);
+                    starContainer.appendChild(originalLabels[i]);
+                }
+                ratingEl.appendChild(starContainer);
+
+                // Add 5 to 1 numbers (reversed)
+                const numberRow = document.createElement('div');
+                numberRow.className = 'star-numbers';
+                for (let i = 5; i >= 1; i--) {
+                    const span = document.createElement('span');
+                    span.textContent = i;
+                    numberRow.appendChild(span);
+                }
+                ratingEl.appendChild(numberRow);
+
+
+
+            });
+            // Find elements with class "gen" and text "جشنواره", then change the text to "جنگ خنده"
+            document.querySelectorAll('.gen').forEach(el => {
+                if (el.textContent.trim() === "جشنواره") {
+                    el.textContent = "جنگ خنده";
+                }
+            });
+
+ const container = document.querySelector('.conta.containerpanel');
+  const header = document.querySelector('.l-heder');
+
+  // Check if desktop mode (example: width > 1024px)
+  if (window.innerWidth > 1024 && container && header) {
+    header.appendChild(container);
+    
+ 
+  }
+// Animate #aboutmovie on page load
+// main.js
+
+// 1️⃣ Setup container panel
+function setupContainer() {
+  let container = document.getElementById('containerPanel');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'containerPanel';
+    document.body.appendChild(container);
+  }
+
+  // Base container styling
+  container.style.width = '97%';
+  container.style.maxWidth = '1080px';
+  container.style.margin = '0 auto';
+  container.style.boxSizing = 'border-box';
+  container.style.padding = '10px';
+  container.style.border = '1px solid #ccc'; // optional
+  container.style.background = '#f9f9f9';   // optional
+
+  // Create IranServer credit section
+  const credit = document.createElement('div');
+  credit.innerHTML = `
+    <a href="https://iranserver.com"
+       rel="nofollow noopener noreferrer"
+       target="_blank"
+       data-nosnippet
+       style="
+         display: inline-flex;
+         align-items: center;
+         justify-content: center;
+         gap: 6px;
+         text-decoration: none;
+         color: #ffd87d;
+         background: rgba(255,255,255,0.05);
+         padding: 0.6rem 1rem;
+         border-radius: 0.75rem;
+         font-weight: 500;
+         transition: background 0.3s ease;
+         direction: rtl;
+         text-align: center;
+         height:128px;
+       ">
+      میزبانی شده با سرورهای قدرتمند
+
+      <img src="https://gishot.ir/pimg/iranserver-logo.svg"
+           alt="IranServer Logo"
+           style="height: 22px; width: auto; vertical-align: middle;">
+    </a>
+  `;
+
+  // Style credit container
+  credit.style.textAlign = 'center';
+  credit.style.margin = '1.5rem auto';
+  credit.style.fontSize = '0.75rem';
+  credit.style.color = '#ccc';
+  credit.style.display = 'none'; // hidden by default
+
+  // Add responsive behavior — show only on tablet/mobile
+  function updateVisibility() {
+    if (window.innerWidth <= 1024) {
+      credit.style.display = 'block';
+    } else {
+      credit.style.display = 'none';
+    }
+  }
+
+  window.addEventListener('resize', updateVisibility);
+  updateVisibility(); // run once on load
+
+  // Append credit below container
+  container.insertAdjacentElement('afterend', credit);
+}
+
+
+// 2️⃣ Animate #aboutmovie element
+function animateMovie() {
+  const element = document.getElementById('aboutmovie');
+  if (!element) return;
+
+  let start = null;
+  const duration = 300; // ms
+  const startLeft = -300;
+  const endLeft = 0;
+
+  function animate(timestamp) {
+    if (!start) start = timestamp;
+    const progress = timestamp - start;
+    const percent = Math.min(progress / duration, 1);
+
+    element.style.left = startLeft + percent * (endLeft - startLeft) + 'px';
+    element.style.opacity = percent;
+
+    if (percent < 1) requestAnimationFrame(animate);
+  }
+
+  requestAnimationFrame(animate);
+}
+
+// 3️⃣ Animate buttons with pulse effect
+function animateButtons(buttons) {
+  buttons.forEach((btn, index) => {
+    setTimeout(() => {
+      let scale = 1;
+      let growing = true;
+      const steps = 30;
+      let step = 0;
+
+      function pulse() {
+        const progress = step / steps;
+        scale = growing ? 1 + 0.3 * progress : 1.3 - 0.3 * progress;
+        btn.style.transform = `scale(${scale})`;
+
+        step++;
+        if (step <= steps) {
+          requestAnimationFrame(pulse);
+        } else if (growing) {
+          step = 0;
+          growing = false;
+          requestAnimationFrame(pulse);
+        } else {
+          btn.style.transform = 'scale(1)';
+        }
+      }
+
+      requestAnimationFrame(pulse);
+    }, index * 300);
+  });
+}
+
+// 4️⃣ Handle dynamically created buttons
+function observeButtons() {
+  // Animate already existing buttons
+  const buttons = document.querySelectorAll('button');
+  if (buttons.length) animateButtons(buttons);
+
+  // Observe for future buttons
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      mutation.addedNodes.forEach((node) => {
+        if (node.tagName === 'BUTTON') {
+          animateButtons([node]);
+        } else if (node.querySelectorAll) {
+          const newBtns = node.querySelectorAll('button');
+          if (newBtns.length) animateButtons(newBtns);
+        }
+      });
+    });
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+}
+
+// 5️⃣ Initialize everything on DOM ready
+window.addEventListener('DOMContentLoaded', () => {
+  setupContainer();
+  animateMovie();
+  observeButtons();
+
+
+
+
+});
+
+
+document.addEventListener("DOMContentLoaded", function () {
+  setTimeout(function () {
+    const ratingElement = document.querySelector(".ishot");
+    if (ratingElement) {
+      const rating = parseFloat(ratingElement.textContent.trim());
+      if (!isNaN(rating)) {
+        const stars = document.querySelectorAll('.star-container input[name="stars"]');
+        if (stars.length) {
+          const rounded = Math.round(rating);
+          stars.forEach((star) => {
+            if (parseInt(star.value) === rounded) {
+              star.checked = true;
+            }
+          });
+        }
+      }
+
+      // Remove the .ishot element after setting the rating
+      ratingElement.remove();
+    }
+  }, 1); // 3000 milliseconds = 3 seconds
+});
+
+
+
+
+        </script>
+        <script src="js/sless.js?v=73-s4-3ce-user-nfwssgrgwfdfmo-oi"></script>
+    </asp:Content>

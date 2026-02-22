@@ -1,10 +1,25 @@
+@font-face {
+  font-family:"dana";
+  src: url("/tibashi-asset/fonts/Vazir-Medium-FD-WOL.eot") format("woff2"),
+       url("/tibashi-asset/fonts/Vazir-Medium-FD-WOL.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+}
+
+
 body {
-  font-family: tahoma, sans-serif;
+  font-family: 'dana';
   background: #f7f8fc;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
+}
+input{
+   font-family: 'dana';
+}
+button{
+   font-family: 'dana';
 }
 .verify-box {
   background: #fff;
@@ -39,3 +54,351 @@ body {
 .verify-box button:hover { background: #218838; }
 .verify-box .error { color: red; margin-top: .5rem; }
 .verify-box .success { color: green; margin-top: .5rem; }
+
+
+
+/* ===== Verify Box ===== */
+.verify-box {
+  background: #fff;
+  max-width: 400px;
+  margin: 80px auto;
+  border-radius: 18px;
+  padding: 30px 25px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.verify-box h2 {
+  font-size: 22px;
+  color: #1e293b;
+  margin-bottom: 10px;
+}
+
+.verify-box input {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 15px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  margin-top: 10px;
+  box-sizing: border-box;
+  text-align: center;
+  transition: border 0.2s ease;
+}
+
+.verify-box input:focus {
+  border-color: #3b82f6;
+  outline: none;
+}
+
+.verify-box button {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  font-size: 15px;
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  background: #3b82f6;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.verify-box button:hover {
+  background: #2563eb;
+}
+
+.verify-box #logoutBtn {
+  background: #ef4444;
+}
+
+.verify-box #logoutBtn:hover {
+  background: #dc2626;
+}
+
+.error {
+  color: #ef4444;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.success {
+  color: #16a34a;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+/* ===== Dashboard ===== */
+.dashboard {
+  max-width: 600px;
+  margin: 80px auto;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+  padding: 30px;
+  text-align: right;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.dashboard-header h2 {
+  font-size: 22px;
+  color: #1e293b;
+}
+
+.dashboard-header button {
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.dashboard-header button:hover {
+  background: #dc2626;
+}
+
+.profile-info label {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.profile-info input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  font-size: 15px;
+  margin-top: 5px;
+  margin-bottom: 20px;
+}
+
+.profile-info input:focus {
+  border-color: #3b82f6;
+  outline: none;
+}
+
+.balance-card {
+  background: #f1f5ff;
+  border: 1px solid #d0e1ff;
+  border-radius: 12px;
+  text-align: center;
+  padding: 20px;
+  margin-bottom: 25px;
+}
+
+.balance-card p {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.balance-card h3 {
+  font-size: 22px;
+  color: #2563eb;
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+.transactions h4 {
+  font-size: 17px;
+  color: #334155;
+  margin-bottom: 10px;
+}
+
+.transactions ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.transactions li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 14px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.text-green {
+  color: #16a34a;
+}
+
+.text-red {
+  color: #dc2626;
+}
+
+/* ===== Loading State ===== */
+button.loading::after {
+  content: " ⏳";
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Editable name field */
+.editable-field { display:flex; gap:6px; align-items:center; }
+.icon-btn { background:none; border:none; cursor:pointer; font-size:18px; }
+.icon-btn:hover { opacity:0.8; }
+.small-text { font-size:13px; margin-top:5px; }
+.success { color:green; }
+.error { color:red; }
+
+/* Events table */
+.events table { width:100%; border-collapse:collapse; margin-top:10px; }
+.events th, .events td { border-bottom:1px solid #ddd; padding:8px; text-align:center; }
+.ticket-btn, .view-msg-btn { padding:5px 10px; border:none; border-radius:6px; cursor:pointer; color:#fff; margin:2px; }
+.ticket-btn { background:#3b82f6; }
+.ticket-btn:hover { background:#2563eb; }
+.view-msg-btn { background:#10b981; }
+.view-msg-btn:hover { background:#059669; }
+
+/* Modal */
+.modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; display:flex; z-index:1000; }
+.modal-content { background:#fff; padding:20px; border-radius:15px; width:90%; max-width:400px; text-align:right; }
+.modal-content textarea { width:100%; height:120px; border-radius:10px; border:1px solid #cbd5e1; padding:10px; margin-top:10px; }
+.modal-buttons { display:flex; justify-content:space-between; margin-top:10px; }
+.modal-buttons .cancel { background:#e11d48; color:#fff; border:none; border-radius:10px; padding:10px; cursor:pointer; flex:1; margin-left:5px; }
+.modal-buttons button { flex:1; margin-right:5px; padding:10px; color:#fff; background:#3b82f6; border:none; border-radius:10px; cursor:pointer; }
+.messages-list { max-height:150px; overflow-y:auto; margin-bottom:10px; border:1px solid #ddd; padding:5px; border-radius:8px; }
+.msg-box { border-bottom:1px solid #eee; padding:5px; font-size:14px; }
+.dashboard-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; }
+.hamburger-menu { position:relative; }
+.menu-icon { font-size:24px; background:none; border:none; cursor:pointer; }
+.menu-list { position:absolute; top:35px; right:0; background:#fff; border:1px solid #ccc; border-radius:10px; list-style:none; padding:0; margin:0; display:none; min-width:150px; }
+.menu-list.show { display:block; }
+.menu-list li { border-bottom:1px solid #eee; }
+.menu-list li:last-child { border-bottom:none; }
+.menu-list li a, .menu-list li button { display:block; padding:10px; text-decoration:none; color:#333; width:100%; text-align:right; background:none; border:none; cursor:pointer; }
+.menu-list li a:hover, .menu-list li button:hover { background:#f0f0f0; }
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.toggle-group {
+  display: flex;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.toggle-option {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  background: #f9f9f9;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.toggle-option.selected {
+  background: #4CAF50;
+  color: #fff;
+  font-weight: bold;
+}
+
+input[type="text"], input[type="tel"], input[type="number"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 6px;
+  background-color: #4CAF50;
+  color: #fff;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+.loading {
+  margin-top: 8px;
+  font-weight: bold;
+}
+
+.hamburger-menu {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  direction: rtl; /* right-to-left alignment */
+  font-family: "Tahoma", sans-serif;
+}
+
+.hamburger-icon {
+  font-size: 28px;
+  user-select: none;
+  padding: 5px 10px;
+  background-color: #4CAF50;
+  color: #fff;
+  border-radius: 6px;
+  transition: background 0.3s;
+}
+
+.hamburger-icon:hover {
+  background-color: #45a049;
+}
+
+.menu-content {
+  display: none; /* hidden by default */
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  min-width: 150px;
+  overflow: hidden;
+  z-index: 100;
+  text-align: right;
+}
+
+.menu-link,
+.menu-btn {
+  display: block;
+  width: 100%;
+  padding: 12px 15px;
+  font-size: 14px;
+  color: #333;
+  text-decoration: none;
+  border: none;
+  background: none;
+  text-align: right;
+  transition: background 0.2s, color 0.2s;
+}
+
+.menu-link:hover,
+.menu-btn:hover {
+  background-color: #f1f1f1;
+  color: #000;
+  cursor: pointer;
+}
+
+.hamburger-menu.open .menu-content {
+  display: block;
+}

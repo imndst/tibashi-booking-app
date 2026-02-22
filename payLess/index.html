@@ -74,7 +74,7 @@
         message.textContent = "بلیط شما آماده است.";
         ticketBtn.style.display = "inline-block";
         ticketBtn.onclick = () => {
-            window.location.href = `https://aboumoslem.gishot.ir/ticket/?res=${encodeURIComponent(resNum)}`;
+            window.location.href = `/ticket/?res=${encodeURIComponent(resNum)}`;
         }
     } else if (error) {
         // Payment Failed

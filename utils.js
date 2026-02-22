@@ -1,11 +1,16 @@
 // tibashi-js/utils/api.js
-// const API_BASE = "https://bdcast.gishot.ir/api";
-const API_BASE = "https://localhost:7032/api";
-export const BASE_URL = "https://gishot.ir/";
+// const API_BASE = "https://bg-moslem.gishot.ir/api";
+export const API_BASE = "https://localhost:7032/api";
+export const BASE_URL = "https://localhost:7032/";
+
+export const API_BASE_URL = "https://localhost:7032/api";
+export const BASE_URL_ACC = "https://localhost:7032/";
+
 
 export const ENDPOINTS = {
   slides: `${API_BASE}/slides/Slides`,
   tickets: `${API_BASE}/TempSeat/SubmitTickets`,
+  ticketsSeatLess: `${API_BASE}/TempSeat/SubmitTicketsSeatLess`,
   events: `${API_BASE}/events/Events`,
   boxOffice: `${API_BASE}/Box/BoxOffice`,
   profiles: `${API_BASE}/Profiles/Profiles`,
@@ -20,6 +25,12 @@ export const ENDPOINTS = {
   deleteRecentByProgram: (programId) =>
     `${API_BASE}/TempSeat/delete-recent-by-program?programId=${programId}`,
     boxOffice: `${API_BASE}/Box/BoxOffice`, // ✅ Matches BoxController route
+
+     walletBalance: (programId) =>
+    `${API_BASE}/TempSeat/GetWalletBalance?programId=${programId}`,
+
+      submitTicketsUseWalletLess: (useWallet = 1) =>
+    `${API_BASE}/TempSeat/SubmitTicketsUseWalletLess?useWallet=${useWallet}`,
 };
 
 export async function deleteTempSeats() {
@@ -111,13 +122,13 @@ export async function checkDiscountCode(programId, discountCode) {
       }),
     });
 
-    if (!res.ok) throw new Error("خطا در بررسی کد تخفیف");
+    if (!res.ok) throw new Error( res?.message||"تعداد درخواست های شما زیاد است  دقایقی بعد مجدد امتخان کنید");
 
     const data = await res.json();
     return data;
   } catch (err) {
     console.error(err);
-    return { status: false, message: "خطا در بررسی کد تخفیف" };
+    return { status: false, message: err?.message|| "تعداد درخواست های شما زیاد است  دقایقی بعد مجدد امتحان کنید" };
   }
 }
 export async function fetchSlides() {
@@ -253,6 +264,20 @@ export async function fetchSeatStatus(timeId) {
   return res.json();
 }
 
+export async function submitTicketsSeatLess(payload) {
+  try {
+    const res = await fetch(ENDPOINTS.ticketsSeatLess, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return await res.json();
+  } catch (err) {
+    console.error(err);
+    return { status: false, message: "خطا در ارسال اطلاعات به سرور" };
+  }
+}
+
 export async function submitTickets(payload) {
   try {
     const res = await fetch(ENDPOINTS.tickets, {
@@ -266,6 +291,7 @@ export async function submitTickets(payload) {
     return { status: false, message: "خطا در ارسال اطلاعات به سرور" };
   }
 }
+
 
 /**
  * Build a flattened seat plan with global IDs for an event.
@@ -335,3 +361,136 @@ export function getSeatClass(
   if (soc.includes(idStr)) return "Soc";
   return "";
 }
+
+export function updateSeatClasses(seatStatus) {
+  const { book = [], ipg = [], temp = [], soc = [] } = seatStatus.result;
+
+  document.querySelectorAll(".Seat").forEach((seat) => {
+    const id = (seat.dataset.seat.toString());
+    seat.classList.remove("Temp","Ipg","Soc","Book");
+    if (book.includes(id)) seat.classList.add("Book");
+    if (temp.includes(id)) seat.classList.add("Temp");
+    if (ipg.includes(id)) seat.classList.add("Ipg");
+    if (soc.includes(id)) seat.classList.add("Soc");
+  });
+}
+
+
+
+
+export async function getWalletBalance(programId) {
+  try {
+    const jwt = localStorage.getItem("jwt_token");
+    if (!jwt) {
+      return { status: false, message: "لطفاً وارد حساب کاربری شوید" };
+    }
+
+    const res = await fetch(ENDPOINTS.walletBalance(programId), {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return {
+        status: false,
+        message: data?.message || "خطا در دریافت موجودی کیف پول",
+      };
+    }
+
+    return { status: true, ...data };
+  } catch (err) {
+    console.error("getWalletBalance error:", err);
+    return { status: false, message: "خطا در دریافت موجودی کیف پول" };
+  }
+}
+
+export async function submitTicketsUseWallet(payload, useWallet = 1) {
+  try {
+    const jwt = localStorage.getItem("jwt_token");
+    if (!jwt) {
+      return { status: false, message: "لطفاً وارد حساب کاربری شوید" };
+    }
+
+    const res = await fetch(
+      ENDPOINTS.submitTicketsUseWalletLess(useWallet),
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${jwt}`,
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return {
+        status: false,
+        message: data?.message || "خطا در پرداخت از کیف پول",
+      };
+    }
+
+    return data;
+  } catch (err) {
+    console.error("submitTicketsUseWallet error:", err);
+    return { status: false, message: "خطا در پرداخت از کیف پول" };
+  }
+}
+
+
+
+
+
+/**
+ * Build seatless plan from API with JWT authorization
+ * @param {number} eventId - event ID
+ * @param {string} token - JWT access token
+ * @returns {Promise<Array>} - array of seatless items
+ */
+export async function buildSeatless(eventId, token) {
+  const res = await fetch(`${API_BASE}/Seatless/plan/${eventId}`, {
+    headers: {
+      "Authorization": token ? `Bearer ${token}` : "",
+      "Content-Type": "application/json",
+    },
+  });
+
+  // If unauthorized, just return the data without throwing
+  let data;
+  try {
+    data = await res.json();
+  } catch {
+    data = { status: false, result: [] };
+  }
+
+  // If API gives 401, just return empty results
+  if (!data.status || !data.result) {
+    return [];
+  }
+
+  let globalId = 0;
+  return data.result.map((item) => {
+    globalId++;
+    return {
+      globalId,
+      id: item.id,
+      mid: item.mid,
+      name: item.name,
+      price: item.price,
+      picPath: item.picPath,
+      bgcolor: item.bgColor,
+      capacity: item.capacity,
+      remaining: item.remaining,
+      sansId: item.sansId,
+      status:item.status
+    };
+  });
+}
+

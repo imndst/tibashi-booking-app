@@ -1,12 +1,13 @@
 import { renderLayout } from "./shared/layout.js";
 import { initEvents } from "./tibashi-js-v5/events/events.js";
 import { EventComponent } from "./tibashi-js-v5/events/e.js";
+import { renderSeats } from "./tibashi-js-v5/modal/seat/SeatMap.js";
 import { renderSeatless } from "./tibashi-js-v5/modal/seat/SeatMap.js";
 import { initImageCarousel } from "./tibashi-js-v5/events/swiper.js";
 import { initBoxOffice } from "./tibashi-js-v5/events/boxOffice.js";
 import { initViewPort } from "./tibashi-js-v5/events/viewPort.js";
 import { initProfiles } from "./tibashi-js-v5/profile/profiles.js";
-// import "./app.css";
+
 
 const routes = [
   {

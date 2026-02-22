@@ -1,9 +1,7 @@
-
 .Stage {
     background-color: #3F51B5 !important;
     border-radius: 8px;
-    min-width: 400px;
-    width:500px;
+  
     margin:10px auto;
     display:block;
 }
@@ -14,12 +12,15 @@
     overflow:auto;
     scrollbar-width: thin;
     scrollbar-color: var(--color-accent) var(--color-bg);
+    margin: 0  auto;
 }
 
 .RowContainer {
      white-space:nowrap;
      margin:0 auto;
 }
+
+
 
 .RowHeader {
     font-size: 0.725rem;
@@ -28,6 +29,7 @@
     text-align: center;
     max-width:38px;
     display:inline-block;
+       color:var(--color-bg);
 }
 
 .RowEndHeader {
@@ -37,6 +39,7 @@
     text-align: center;
     font-size:50%;
      display:inline-block;
+    color:var(--color-bg);
 }
 
 .Seat {

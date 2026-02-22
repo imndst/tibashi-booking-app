@@ -113,6 +113,7 @@
   position: relative;
   margin: 0;
   transform: none; /* no odd/even offset */
+  min-width: 120px;
 }
 
 .tibashi-event-card:hover {
@@ -212,7 +213,7 @@
 }
 
 .tibashi-cat-btn.tibashi-cat-active {
-  background-color: #3b82f6;
+  background-color: #b60808;
   color: white;
 }
 

@@ -1,53 +1,12 @@
-
-
-
-
-const API_BASE = "https://bg-moslem.gishot.ir/api/TempSeat";
-const API_BASE_T = "https://bg-moslem.gishot.ir/api";
+const API_BASE = "https://localhost:7032/api/TempSeat";
 
 const ticketsDiv = document.getElementById("tickets");
 const downloadBtn = document.getElementById("downloadPDF");
 
-async function buildSeatPlan(eventId) {
-  const res = await fetch(`${API_BASE_T}/Seat/plan/${eventId}`);
-  const data = await res.json();
-
-  if (!data.status) {
-    throw new Error(data.message || "Failed to fetch seat plan");
-  }
-
-  let globalId = 0;
-  const plan = [];
-
-  const rows = data.result || [];
-  rows.forEach((row, rowIndex) => {
-    const seatCount = parseInt(row.seat_in_rows || 0, 10);
-    for (let i = 0; i < seatCount; i++) {
-      globalId++;
-      plan.push({
-        globalId,
-        rowNumber: row.row_title?.trim() || rowIndex + 1,
-        seatNumber: i + 1,
-      });
-    }
-  });
-
-  return plan;
-}
-
-async function getSeatByGlobalId(eventId, globalSeatId) {
-  if (!eventId || !globalSeatId) {
-    throw new Error("Both eventId and globalSeatId are required");
-  }
-
-  const plan = await buildSeatPlan(eventId);
-  return plan.find((s) => s.globalId === Number(globalSeatId)) || null;
-}
-
-// Fetch ticket data from API
-async function fetchTicket(id) {
+// --- Fetch ticket data ---
+async function fetchTicket(ticketId) {
   try {
-    const res = await fetch(`${API_BASE}/ticket/${id}`);
+    const res = await fetch(`${API_BASE}/ticket/${ticketId}`);
     if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
     return res.json();
   } catch (err) {
@@ -56,28 +15,63 @@ async function fetchTicket(id) {
   }
 }
 
-// Render tickets
-export async function renderTickets(id) {
+// --- Fetch seatless plan for event ---
+async function buildSeatless(eventId, token) {
+  if (!eventId) throw new Error("EventId is required");
+  if (!token) throw new Error("JWT token is required");
+
+  const res = await fetch(`${API_BASE}/Seatless/plan/${eventId}`, {
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (res.status === 401 || res.status === 403) {
+    throw new Error("Unauthorized: please login");
+  }
+
+  const data = await res.json();
+
+  if (!data.status) {
+    throw new Error(data.message || "Failed to fetch seatless data");
+  }
+
+  let globalId = 0;
+  return (data.result || []).map((item) => ({
+    globalId: ++globalId,
+    id: item.id,
+    mid: item.mid,
+    name: item.name,
+    price: item.price,
+    pic: item.picPath,
+    bgcolor: item.bgColor,
+    capacity: item.capacity,
+    remaining: item.remaining,
+    sansId: item.sansId,
+  }));
+}
+
+// --- Render tickets ---
+export async function renderTickets(ticketId, token) {
   ticketsDiv.innerHTML = "";
-  if (!id) {
+
+  if (!ticketId) {
     ticketsDiv.innerHTML =
       "<p style='color:red'>❌ شماره پیگیری وارد نشده است.</p>";
     return;
   }
 
-  const data = await fetchTicket(id);
+  const data = await fetchTicket(ticketId);
   if (!data.status) {
     ticketsDiv.innerHTML = `<p style='color:red'>❌ ${data.message}</p>`;
     return;
   }
 
   try {
-    const { customer, seats, hall_name, address, lat, event_time } =
+    const { customer, seats, hall_name, address, event_time, programsing } =
       data.result;
 
-    new Date(customer.eventTime);
-
-    // Convert dynamic time to Persian date/time
     const persianDate = new Intl.DateTimeFormat("fa-IR", {
       year: "numeric",
       month: "long",
@@ -93,14 +87,15 @@ export async function renderTickets(id) {
         "<p style='color:red'>❌ هیچ صندلی برای این شماره پیگیری یافت نشد.</p>";
       return;
     }
+ const token = localStorage.getItem("jwt_token");
+    // Fetch seatless plan for this event once
+    const seatlessPlan = await buildSeatless(2717324, token);
 
     for (const seat of seats) {
-      let seatInfo = null;
-      try {
-        seatInfo = await getSeatByGlobalId(customer.prId, seat.place);
-      } catch (err) {
-        console.warn("Seat info not found", err);
-      }
+      // Find seat info from seatless plan by place or id
+      const seatInfo =
+        seatlessPlan.find((s) => s.id == seat.pid || s.id == seat.SeatId) ||
+        {};
 
       const ticket = document.createElement("div");
       ticket.className = "ticket";
@@ -118,11 +113,8 @@ export async function renderTickets(id) {
                     ? new Date(customer.timeG).toLocaleString("fa-IR")
                     : "-"
                 }</p>
-                <p><strong>ردیف:</strong> ${
-                  seatInfo?.rowNumber || "-"
-                } 
-      </p>
-                <p><strong>قیمت:</strong> ${seat.much || "-"}</p>
+                <p><strong>صندلی:</strong> ${seatInfo.name || seat.note || "-"}</p>
+                <p><strong>قیمت:</strong> ${seat.much || seatInfo.price || "-"}</p>
                 <div class="section">
                     <p><strong>محل رویداد:</strong> ${hall_name || "-"}</p>
                     <p><strong>آدرس:</strong> ${address || "-"}</p>
@@ -165,7 +157,7 @@ export async function renderTickets(id) {
   }
 }
 
-// PDF download
+// --- PDF download ---
 export function downloadTicketsPDF() {
   if (!ticketsDiv.innerHTML.trim()) {
     return alert("بلیتی برای دانلود وجود ندارد!");
