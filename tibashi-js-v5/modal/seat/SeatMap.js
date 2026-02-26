@@ -84,6 +84,8 @@ export function buildSeatPlan(
     direction:${aligment === 1 ? "rtl" : "ltr"};
     min-height:${mapHeight}px;
     width:${mapWidth}px;
+
+   
     overflow:hidden;
     position:relative;
     touch-action:none;
@@ -370,9 +372,10 @@ export async function renderSeats({ timeId }) {
       ${buildControls()}
     `;
 
+    const seatMapElementSc = document.getElementById("tab-content");
     const seatMapElement = document.getElementById("seat-map");
     if (seatMapElement)
-      seatMapElement.scrollIntoView({ behavior: "smooth", block: "start" });
+      seatMapElementSc.scrollIntoView({ behavior: "smooth", block: "start" });
 
     const payBtn = document.getElementById("btn-pay");
     const totalEl = document.getElementById("total-price");
@@ -422,7 +425,7 @@ export async function renderSeats({ timeId }) {
       const total = selectedSeats.reduce((s, x) => s + x.price, 0);
       totalEl.textContent = `${
         selectedSeats.length
-      } بلیت - ${total.toLocaleString()} ریال`;
+      } بلیت - ${total.toLocaleString()}`;
     });
 
     seatSelectionTimer = createCountdownTimer(
@@ -644,7 +647,7 @@ export async function renderSeatless({ timeId }) {
         ${
           isFinished
             ? `<div style="color:red;font-weight:bold;"><br/>ظرفیت تکمیل</div>`
-            : `<div class="seatless-price">${Number(item.price).toLocaleString()} ریال</div>`
+            : `<div class="seatless-price">${Number(item.price).toLocaleString()}تومان</div>`
         }
 
         <div class="seatless-quantity">
@@ -690,7 +693,7 @@ export async function renderSeatless({ timeId }) {
       });
 
       if (totalEl) {
-        totalEl.textContent = `${totalTickets} بلیت - ${totalPrice.toLocaleString()} ریال`;
+        totalEl.textContent = `${totalTickets} بلیت - ${totalPrice.toLocaleString()}تومان`;
       }
     }
 

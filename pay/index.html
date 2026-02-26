@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Payment Result</title>
+
 <style>
     /* ----- Reset & base ----- */
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -74,7 +74,7 @@
         message.textContent = "بلیط شما آماده است.";
         ticketBtn.style.display = "inline-block";
         ticketBtn.onclick = () => {
-            window.location.href = `https://aboumoslem.gishot.ir/ticket/?res=${encodeURIComponent(resNum)}`;
+            window.location.href = `https://gishot.ir/ticket/?res=${encodeURIComponent(resNum)}`;
         }
     } else if (error) {
         // Payment Failed

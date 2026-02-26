@@ -1,5 +1,5 @@
 
-const savedTheme = localStorage.getItem("theme") || "dark";
+const savedTheme = localStorage.getItem("theme") || "light";
 document.documentElement.setAttribute("data-theme", savedTheme);
 
 document.body.style.visibility = "hidden";
@@ -14,7 +14,7 @@ export function renderLayout() {
           <span></span>
           <span></span>
         </button>
-        <div class="nav-logo">aboomoslem</div>
+        <div class="nav-logo">گیشات</div>
       </div>
 
       <nav id="navMenu" class="nav-menu">
@@ -31,7 +31,10 @@ export function renderLayout() {
     <main id="app" class="content"></main>
 
     <footer class="footer">
-      <p>© 2025 GIshot App</p>
+      <p>© GIshot 
+      قدرت گرفته از سرورهای ایران سرور
+      
+      </p>
     </footer>
   `;
 

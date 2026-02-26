@@ -97,9 +97,9 @@ export async function renderTimes(ev, tabContent) {
 
       const progBar = document.createElement("div");
       progBar.className = "tibashi-progress-bar";
-      // progBar.innerHTML = `<div class="tibashi-progress-fill" style="width:${fullness}%"></div>`;
-      progBar.innerHTML = ``;
-      // div.appendChild(progBar);
+       progBar.innerHTML = `<div class="tibashi-progress-fill" style="width:${fullness}%"></div>`;
+    
+       div.appendChild(progBar);
 
       div.appendChild(btn);
       scrollContainer.appendChild(div);

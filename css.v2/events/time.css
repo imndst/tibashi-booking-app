@@ -1,6 +1,7 @@
 /* ===== Scrollable horizontal container ===== */
 .scroll-x {
   display: flex;
+  flex-wrap: wrap; /* wrap برای موبایل */
   gap: 1rem;
   overflow-x: auto;
   padding-bottom: 5px; /* small padding to avoid scrollbar overlap */
@@ -28,7 +29,7 @@
 /* ===== Card styling ===== */
 .tibashi-sans-card {
   flex: 0 0 auto; /* prevents cards from shrinking */
-  width: 200px; /* adjust if needed */
+  width: 200px; /* default width for desktop */
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 12px;
@@ -38,7 +39,7 @@
   gap: 0.5rem;
   box-shadow: 0 4px 10px rgba(0,0,0,0.05);
   transition: transform 0.2s, box-shadow 0.2s;
-  user-select:none
+  user-select: none;
 }
 
 .tibashi-sans-card:hover {
@@ -117,9 +118,17 @@
   height: 24px;
 }
 
-/* Responsive tweaks */
+/* ===== Responsive tweaks ===== */
 @media (max-width: 768px) {
+  .scroll-x {
+    flex-wrap: wrap; /* allow wrapping on mobile */
+    justify-content: flex-start; /* left-align */
+    gap: 5px; /* fixed gap */
+  }
+
   .tibashi-sans-card {
-    width: 160px;
+    width: calc(50% - 5px); /* two cards per row, gap accounted */
+    margin-bottom: 5px; /* spacing between rows */
+    min-width: 166px;
   }
 }

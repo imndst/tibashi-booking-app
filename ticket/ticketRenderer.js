@@ -1,14 +1,30 @@
+const API_BASE = "https://bdcast.gishot.ir/api/TempSeat";
+const API_BASE_T = "https://bdcast.gishot.ir/api";
 
 
-
-
-const API_BASE = "https://bg-moslem.gishot.ir/api/TempSeat";
-const API_BASE_T = "https://bg-moslem.gishot.ir/api";
-
+// const API_BASE = "https://localhost:7032/api/TempSeat";
+// const API_BASE_T = "https://localhost:7032/api";
 const ticketsDiv = document.getElementById("tickets");
 const downloadBtn = document.getElementById("downloadPDF");
 
-async function buildSeatPlan(eventId) {
+/* ================================
+   Seat Plan Cache (Global)
+================================ */
+
+const seatPlanCache = {};
+
+/**
+ * Fetch and build seat plan (only once per event)
+ */
+
+async function getSeatPlan(eventId) {
+  if (!eventId) throw new Error("eventId is required");
+
+  // اگر قبلا کش شده باشد
+  if (seatPlanCache[eventId]) {
+    return seatPlanCache[eventId];
+  }
+
   const res = await fetch(`${API_BASE_T}/Seat/plan/${eventId}`);
   const data = await res.json();
 
@@ -16,35 +32,45 @@ async function buildSeatPlan(eventId) {
     throw new Error(data.message || "Failed to fetch seat plan");
   }
 
-  let globalId = 0;
-  const plan = [];
-
   const rows = data.result || [];
+  let globalId = 0;
+
+  // استفاده از Map برای lookup سریع O(1)
+  const seatMap = new Map();
+
   rows.forEach((row, rowIndex) => {
-    const seatCount = parseInt(row.seat_in_rows || 0, 10);
+    const seatCount = Number(row.seat_in_rows) || 0;
+
+    const hasCustomStart =
+      Number(row.is_incr) === 1 &&
+      row.incr_first_seat !== null &&
+      row.incr_first_seat !== undefined &&
+      !isNaN(Number(row.incr_first_seat));
+
+    const startSeatNumber = hasCustomStart
+      ? Number(row.incr_first_seat)
+      : 1;
+
     for (let i = 0; i < seatCount; i++) {
       globalId++;
-      plan.push({
+
+      seatMap.set(globalId, {
         globalId,
         rowNumber: row.row_title?.trim() || rowIndex + 1,
-        seatNumber: i + 1,
+        seatNumber: startSeatNumber + i, // ✅ اینجا اصلاح شد
       });
     }
   });
 
-  return plan;
+  // ذخیره در کش
+  seatPlanCache[eventId] = seatMap;
+
+  return seatMap;
 }
+/* ================================
+   Fetch Ticket
+================================ */
 
-async function getSeatByGlobalId(eventId, globalSeatId) {
-  if (!eventId || !globalSeatId) {
-    throw new Error("Both eventId and globalSeatId are required");
-  }
-
-  const plan = await buildSeatPlan(eventId);
-  return plan.find((s) => s.globalId === Number(globalSeatId)) || null;
-}
-
-// Fetch ticket data from API
 async function fetchTicket(id) {
   try {
     const res = await fetch(`${API_BASE}/ticket/${id}`);
@@ -56,9 +82,13 @@ async function fetchTicket(id) {
   }
 }
 
-// Render tickets
+/* ================================
+   Render Tickets
+================================ */
+
 export async function renderTickets(id) {
   ticketsDiv.innerHTML = "";
+
   if (!id) {
     ticketsDiv.innerHTML =
       "<p style='color:red'>❌ شماره پیگیری وارد نشده است.</p>";
@@ -66,18 +96,31 @@ export async function renderTickets(id) {
   }
 
   const data = await fetchTicket(id);
+
   if (!data.status) {
     ticketsDiv.innerHTML = `<p style='color:red'>❌ ${data.message}</p>`;
     return;
   }
 
   try {
-    const { customer, seats, hall_name, address, lat, event_time } =
+    const { customer, seats, hall_name, address, event_time } =
       data.result;
 
-    new Date(customer.eventTime);
+    if (!Array.isArray(seats) || seats.length === 0) {
+      ticketsDiv.innerHTML =
+        "<p style='color:red'>❌ هیچ صندلی برای این شماره پیگیری یافت نشد.</p>";
+      return;
+    }
 
-    // Convert dynamic time to Persian date/time
+    // 🔥 فقط یک بار Seat Plan گرفته می‌شود
+    let seatPlan = new Map();
+    try {
+      seatPlan = await getSeatPlan(customer.prId);
+    } catch (err) {
+      console.warn("Seat plan fetch failed", err);
+    }
+
+    // تبدیل تاریخ به شمسی
     const persianDate = new Intl.DateTimeFormat("fa-IR", {
       year: "numeric",
       month: "long",
@@ -88,84 +131,105 @@ export async function renderTickets(id) {
       hour12: false,
     }).format(new Date(event_time));
 
-    if (!Array.isArray(seats) || seats.length === 0) {
-      ticketsDiv.innerHTML =
-        "<p style='color:red'>❌ هیچ صندلی برای این شماره پیگیری یافت نشد.</p>";
-      return;
-    }
-
     for (const seat of seats) {
-      let seatInfo = null;
-      try {
-        seatInfo = await getSeatByGlobalId(customer.prId, seat.place);
-      } catch (err) {
-        console.warn("Seat info not found", err);
-      }
+  const seatInfo = seatPlan.get(Number(seat.place)) || null;
+const DEFAULT_LOCATION_TEXT = `
+⚠️ این بلیت غیرقابل استرداد است.<br>
+لطفاً حداقل <strong>۱۵ دقیقه قبل از شروع سانس</strong> در سالن حضور داشته باشید.<br>
+در صورت تأخیر یا عدم رعایت قوانین ذکرشده در صفحه اطلاعات رویداد، بلیت باطل خواهد شد.
+`;
+  const ticket = document.createElement("div");
+  ticket.className = "ticket";
 
-      const ticket = document.createElement("div");
-      ticket.className = "ticket";
+  ticket.innerHTML = `
+<div class="ticket-header">
+  <div class="sponsor">Gishot</div>
+</div>
 
-      ticket.innerHTML = `
-                <div class="ticket-header">
-                    <div class="sponsor">Sponsor Tibashi-Gishot</div>
-                </div>
-                <h2>${customer.prognName || "رویداد"}</h2>
-                <h1>${persianDate}</h1>
-                <h3><strong>مشتری:</strong> ${customer.name || "-"}</h3>
-                <p><strong>کد خریدار:</strong> ${customer.id || "-"}</p>
-                <p><strong>تاریخ خرید:</strong> ${
-                  customer.timeG
-                    ? new Date(customer.timeG).toLocaleString("fa-IR")
-                    : "-"
-                }</p>
-                <p><strong>ردیف:</strong> ${
-                  seatInfo?.rowNumber || "-"
-                } 
-      </p>
-                <p><strong>قیمت:</strong> ${seat.much || "-"}</p>
-                <div class="section">
-                    <p><strong>محل رویداد:</strong> ${hall_name || "-"}</p>
-                    <p><strong>آدرس:</strong> ${address || "-"}</p>
-                    <p><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                      address
-                    )}" target="_blank">نمایش مسیر</a></p>
-                </div>
-                <div class="qr-barcode">
-                    <canvas class="qrcode"></canvas>
-                    <svg class="barcode"></svg>
-                </div>
-                <div class="footer">gishot.ir</div>
-            `;
+<h2>${customer.prognName || "رویداد"}</h2>
+<h1>${persianDate}</h1>
 
-      ticketsDiv.appendChild(ticket);
+<h3><strong>مشتری:</strong> ${customer.name || "-"}</h3>
 
-      // Generate QR code
-      try {
-        QRCode.toCanvas(ticket.querySelector(".qrcode"), `${seat.barcode}`, {
-          width: 100,
-        });
-      } catch (err) {
-        console.warn("QR code error:", err);
-      }
+<!-- کد خریدار -->
+<div class="buyer-code-box">
+  ${customer.id || "-"}
+</div>
 
-      // Generate barcode
-      try {
-        JsBarcode(ticket.querySelector(".barcode"), `${seat.barcode}`, {
-          format: "CODE128",
-          width: 2,
-          height: 40,
-        });
-      } catch (err) {
-        console.warn("Barcode error:", err);
-      }
-    }
+<!-- ردیف و صندلی -->
+<div class="seat-box">
+  ردیف ${seatInfo?.rowNumber || "-"}  |  صندلی ${
+    seatInfo?.seatNumber || seat.place
+  }
+</div>
+
+<p><strong>قیمت:</strong> ${seat.much || "-"}</p>
+
+<div class="section">
+  <p><strong>محل رویداد:</strong> ${hall_name || "-"}</p>
+  <p><strong>آدرس:</strong> ${address || "-"}</p>
+  <p>
+    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+      address
+    )}" target="_blank">نمایش مسیر</a>
+  </p>
+</div>
+
+<!-- توضیحات / لوکیشن -->
+<div class="location-box">
+  ${DEFAULT_LOCATION_TEXT}
+  ${data.result.location || "توضیحاتی موجود نیست"}
+</div>
+
+<div class="qr-barcode">
+  <canvas class="qrcode"></canvas>
+  <svg class="barcode"></svg>
+</div>
+
+<!-- تاریخ تراکنش پایین بلیت -->
+<div class="transaction-date">
+  تاریخ تراکنش: ${
+    customer.timeG
+      ? new Date(customer.timeG).toLocaleString("fa-IR")
+      : "-"
+  }
+</div>
+
+<div class="footer">gishot.ir</div>
+`;
+
+  ticketsDiv.appendChild(ticket);
+
+  // QR Code
+  try {
+    QRCode.toCanvas(ticket.querySelector(".qrcode"), `${seat.barcode}`, {
+      width: 100,
+    });
+  } catch (err) {
+    console.warn("QR code error:", err);
+  }
+
+  // Barcode
+  try {
+    JsBarcode(ticket.querySelector(".barcode"), `${seat.barcode}`, {
+      format: "CODE128",
+      width: 2,
+      height: 40,
+    });
+  } catch (err) {
+    console.warn("Barcode error:", err);
+  }
+}
   } catch (err) {
     console.error("Render error:", err);
     ticketsDiv.innerHTML = `<p style='color:red'>❌ خطا در نمایش بلیط‌ها</p>`;
   }
 }
 
-// PDF download
+/* ================================
+   PDF Download
+================================ */
+
 export function downloadTicketsPDF() {
   if (!ticketsDiv.innerHTML.trim()) {
     return alert("بلیتی برای دانلود وجود ندارد!");
@@ -175,10 +239,10 @@ export function downloadTicketsPDF() {
     html2pdf()
       .from(ticketsDiv)
       .set({
-        margin: 0.5,
+        margin: 0.3,
         filename: "tickets.pdf",
-        html2canvas: { scale: 2 },
-        pagebreak: { mode: "css", after: ".ticket" },
+        html2canvas: { scale: 1.8 },
+        pagebreak: { mode: "css"},
       })
       .save();
   } catch (err) {

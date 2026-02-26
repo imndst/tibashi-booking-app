@@ -1,15 +1,19 @@
-/* =================== Carousel Styles =================== */
+/* ================================================================
+   GISHOT — Event Grid & Carousel
+   Uses theme.css variables (light + dark)
+   ================================================================ */
+
+/* ── Carousel ──────────────────────────────────────────────────── */
 .carousel-container {
   position: relative;
   width: 100%;
-  max-width: 1080px;    /* Max width */
-  height: 506px;        /* Fixed height */
-  margin: 0 auto;       /* Center horizontally */
+  max-width: 1080px;
+  aspect-ratio: 16/7;
+  margin: 0 auto 2rem;
+  border-radius: 1.25rem;
   overflow: hidden;
-  border-radius: 1.5rem;
-  background: #fff;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-              0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  background: var(--color-surface);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.18);
 }
 
 .carousel-slide {
@@ -19,268 +23,308 @@
   height: 100%;
   object-fit: cover;
   opacity: 0;
-  transition: opacity 0.5s ease-in-out;
+  transform: scale(1.04);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  will-change: opacity, transform;
 }
 
 .carousel-slide.active {
   opacity: 1;
+  transform: scale(1);
 }
 
 .carousel-overlay {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.5), transparent);
-  padding: 1rem;
-  text-align: center;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 50%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1.5rem;
 }
 
 .carousel-title {
   color: #fff;
-  font-weight: bold;
-  font-size: 1.25rem;
-  margin-bottom: 0.5rem;
+  font-weight: 700;
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
+  margin-bottom: 0.75rem;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
 
-.carousel-dots {
-  position: absolute;
-  bottom: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-}
+.carousel-dots { display: flex; gap: 6px; }
 
 .carousel-dot {
-  width: 0.5rem;
-  height: 0.5rem;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.4);
   cursor: pointer;
-  transition: background 0.3s;
+  transition: background 0.3s, transform 0.3s;
 }
 
 .carousel-dot.active {
   background: #fff;
+  transform: scale(1.5);
 }
 
-@media (max-width: 1024px) {
-  .carousel-container { height: 400px; }
-  .carousel-title { font-size: 1rem; }
-}
-
-@media (max-width: 768px) {
-  .carousel-container { height: 300px; border-radius: 1rem; }
-  .carousel-title { font-size: 0.9rem; }
-}
-
-@media (max-width: 480px) {
-  .carousel-container { height: 200px; border-radius: 0.75rem; }
-  .carousel-title { font-size: 0.8rem; }
-}
-
-/* =================== Event Grid Styles =================== */
-#eventsContainer {
-  display: grid;
-  gap: 1rem; /* standard gap vertical & horizontal */
-  padding: 3rem 0;
-  grid-template-columns: repeat(3, 1fr); /* Mobile: 3 per row */
-  direction: ltr;
-}
-
-/* Tablet: 4 per row */
-@media (min-width: 768px) {
-  #eventsContainer { grid-template-columns: repeat(4, 1fr); }
-}
-
-/* Desktop: 5 per row */
-@media (min-width: 1024px) {
-  #eventsContainer { grid-template-columns: repeat(5, 1fr); }
-}
-
-/* Event Card */
-.tibashi-event-card {
-  background: var(--color-surface);
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-  margin: 0;
-  transform: none; /* no odd/even offset */
-  min-width: 120px;
-}
-
-.tibashi-event-card:hover {
-  transform: translateY(-4px) scale(1.03);
-  box-shadow: 0 12px 24px rgba(0,0,0,0.15);
-  z-index: 10;
-}
-
-/* Event Image */
-.tibashi-event-img {
-  width: 100%;
-  max-height: 400px;
-  height: auto;
-  object-fit: cover;
-  display: block;
-  border-radius: 16px 16px 0 0;
-  background-color: #e5e7eb;
-  transition: transform 0.4s ease;
-}
-
-.tibashi-event-card:hover .tibashi-event-img {
-  transform: scale(1.05);
-}
-
-/* Skeleton Loading */
-.tibashi-event-img.loading {
-  background: linear-gradient(90deg, #f3f3f3 25%, #e0e0e0 50%, #f3f3f3 75%);
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s infinite;
-  min-height: 180px;
-}
-
-@keyframes skeleton-loading {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* Shine Effect */
-.tibashi-shine.once::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -50%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(
-    120deg,
-    rgba(255,255,255,0) 0%,
-    rgba(255,255,255,0.4) 50%,
-    rgba(255,255,255,0) 100%
-  );
-  transform: skewX(-25deg);
-  animation: shine-once 1s forwards;
-  pointer-events: none;
-}
-
-@keyframes shine-once {
-  0% { left: -50%; opacity: 0; }
-  50% { left: 50%; opacity: 1; }
-  100% { left: 100%; opacity: 0; }
-}
-
-/* Event Text */
-.tibashi-event-name,
-.tibashi-event-location,
-.tibashi-event-rate {
-  width: 100%;
-  padding-left: 0.5rem;
-  text-align: left;
-}
-
-.tibashi-event-name { font-weight: 600; margin-top: 0.6rem; }
-.tibashi-event-location { font-size: 0.85rem; color: var(--color-muted); margin-top: 0.3rem; }
-.tibashi-event-rate { margin-top: 0.4rem; color: var(--color-primary); font-weight: 500; }
-
-/* No Events */
-.tibashi-no-events {
-  text-align: center;
-  color: var(--color-muted);
-  padding: 2rem 0;
-}
-
-/* Categories */
+/* ── Category Nav ──────────────────────────────────────────────── */
 .tibashi-categories {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  padding: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.25rem 0;
+  min-height: 44px; /* ✅ CLS fix */
 }
 
 .tibashi-cat-btn {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 0.5rem;
+  padding: 0.4rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 100px;
+  background: var(--color-surface);
+  color: var(--color-muted);
   cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.tibashi-cat-btn.tibashi-cat-active {
-  background-color: #b60808;
-  color: white;
+  font-family: var(--font-family);
+  font-size: 0.82rem;
+  font-weight: 500;
+  transition: background 0.18s, color 0.18s, border-color 0.18s, transform 0.15s;
+  white-space: nowrap;
 }
 
 .tibashi-cat-btn:hover {
-  background-color: #60a5fa;
-  color: white;
+  background: var(--color-bg);
+  color: var(--color-text);
+  border-color: var(--color-accent);
+  transform: translateY(-1px);
 }
 
-/* =================== Mobile Adjustments =================== */
+.tibashi-cat-btn.tibashi-cat-active {
+  background: var(--color-accent);
+  color: #fff;
+  border-color: var(--color-accent);
+  font-weight: 600;
+}
+
+/* ── Search ────────────────────────────────────────────────────── */
+.tibashi-search {
+  width: 100%;
+  height: 44px; /* ✅ CLS fix */
+  box-sizing: border-box;
+  display: block;
+  margin-bottom: 1rem;
+  padding: 0 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 100px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-family);
+  font-size: 0.9rem;
+  direction: rtl;
+  transition: border-color 0.2s;
+}
+
+.tibashi-search:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+/* ── Event Grid ────────────────────────────────────────────────── */
+#eventsContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 1rem;
+  padding: 0.5rem 0 5rem;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 400px; /* ✅ CLS fix */
+}
+
+/* ── Event Card ────────────────────────────────────────────────── */
+.tibashi-event-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  text-decoration: none;
+  color: var(--color-text);
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1),
+              box-shadow 0.28s cubic-bezier(0.22,1,0.36,1),
+              border-color 0.2s;
+  will-change: transform;
+  animation: card-in 0.38s cubic-bezier(0.22,1,0.36,1) both;
+}
+
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* stagger */
+.tibashi-event-card:nth-child(1)  { animation-delay: 0ms }
+.tibashi-event-card:nth-child(2)  { animation-delay: 35ms }
+.tibashi-event-card:nth-child(3)  { animation-delay: 70ms }
+.tibashi-event-card:nth-child(4)  { animation-delay: 105ms }
+.tibashi-event-card:nth-child(5)  { animation-delay: 140ms }
+.tibashi-event-card:nth-child(6)  { animation-delay: 175ms }
+.tibashi-event-card:nth-child(7)  { animation-delay: 210ms }
+.tibashi-event-card:nth-child(8)  { animation-delay: 245ms }
+.tibashi-event-card:nth-child(9)  { animation-delay: 280ms }
+.tibashi-event-card:nth-child(10) { animation-delay: 315ms }
+.tibashi-event-card:nth-child(11) { animation-delay: 350ms }
+.tibashi-event-card:nth-child(12) { animation-delay: 385ms }
+
+.tibashi-event-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.13);
+  border-color: var(--color-accent);
+  z-index: 10;
+}
+
+/* ── Poster Image ──────────────────────────────────────────────── */
+.tibashi-event-img-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2/3;
+  overflow: hidden;
+  background: var(--color-bg);
+  flex-shrink: 0;
+}
+
+.tibashi-event-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  opacity: 0;
+  transition: transform 0.45s cubic-bezier(0.22,1,0.36,1), opacity 0.3s;
+}
+
+.tibashi-event-img.loaded { opacity: 1; }
+
+.tibashi-event-card:hover .tibashi-event-img { transform: scale(1.06); }
+
+/* genre badge */
+.tibashi-event-badge {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(5px);
+  color: #fff;
+  font-family: var(--font-family);
+  font-size: 0.62rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.15);
+  pointer-events: none;
+  max-width: 80%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Card Body ─────────────────────────────────────────────────── */
+.tibashi-event-body {
+  padding: 0.55rem 0.6rem 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
+}
+
+.tibashi-event-name {
+  font-family: var(--font-family);
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--color-text);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-align: right;
+  margin: 0;
+}
+
+.tibashi-event-location {
+  font-family: var(--font-family);
+  font-size: 0.7rem;
+  color: var(--color-muted);
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tibashi-event-rate {
+  font-size: 0.72rem;
+  text-align: right;
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+
+/* ── Skeleton ──────────────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.tibashi-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-border) 25%,
+    var(--color-bg)     50%,
+    var(--color-border) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.tibashi-event-img-wrap.tibashi-skeleton { border-radius: 0; }
+
+.tibashi-skeleton-line {
+  height: 0.72rem;
+  border-radius: 4px;
+  margin-bottom: 0.35rem;
+}
+
+.tibashi-skeleton-line.short { width: 55%; }
+
+/* ── No Results / Error ────────────────────────────────────────── */
+.tibashi-no-events,
+.tibashi-error {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-family: var(--font-family);
+  padding: 4rem 0;
+  font-size: 0.95rem;
+}
+
+.tibashi-no-events { color: var(--color-muted); }
+.tibashi-error     { color: var(--color-primary); }
+
+/* ── Page transitions ──────────────────────────────────────────── */
+@keyframes slideIn  { from { transform: translateX(60px);  opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideOut { from { transform: translateX(0);     opacity: 1; } to { transform: translateX(60px); opacity: 0; } }
+
+.page-slide-in  { animation: slideIn  0.35s cubic-bezier(0.22,1,0.36,1) forwards; }
+.page-slide-out { animation: slideOut 0.25s ease forwards; }
+
+/* ── Responsive ────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  /* Event cards: slightly smaller image height */
-  .tibashi-event-img {
-    max-height: 180px;   /* smaller for mobile */
-  }
-
-  /* Event text: smaller font sizes */
-  .tibashi-event-name {
-    font-size: 0.9rem;
-    margin-top: 0.4rem;
-  }
-
-  .tibashi-event-location {
-    font-size: 0.75rem;
-    margin-top: 0.2rem;
-  }
-
-  .tibashi-event-rate {
-    font-size: 0.8rem;
-    margin-top: 0.3rem;
-  }
-
-  /* Category buttons: smaller padding */
-  .tibashi-cat-btn {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
-  }
-
-  /* Reduce gap between cards for mobile */
-  #eventsContainer {
-    gap: 0.8rem;
-  }
+  #eventsContainer { grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
 }
 
-/* Extra small screens (<480px) */
 @media (max-width: 480px) {
-  .tibashi-event-img {
-    max-height: 140px;   /* very small images */
-  }
-
-  .tibashi-event-name {
-    font-size: 0.8rem;
-  }
-
-  .tibashi-event-location {
-    font-size: 0.7rem;
-  }
-
-  .tibashi-event-rate {
-    font-size: 0.75rem;
-  }
-
-  .tibashi-cat-btn {
-    padding: 0.3rem 0.6rem;
-    font-size: 0.7rem;
-  }
-
-  #eventsContainer {
-    gap: 0.6rem;
-  }
+  #eventsContainer { grid-template-columns: repeat(3, 1fr); gap: 0.55rem; }
+  .tibashi-event-name     { font-size: 0.73rem; }
+  .tibashi-event-location { font-size: 0.65rem; }
 }

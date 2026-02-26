@@ -80,6 +80,9 @@ export function showCustomerModal(
       </label>
 
       <div class="price-summary">
+<p style="color: #FFD700; font-weight: bold; font-size: 0.9em; padding: 2px; display: inline-block;">
+  <strong>مهم: بعد از پرداخت امکان جابجایی و استرداد بلیت وجود ندارد. لطفا در انتخاب خود دقت کنید.</strong>
+</p>
         <div class="price-row">مبلغ بلیت‌ها <span id="subtotal">0 تومان</span></div>
         <div class="price-row">کارمزد (${feePercent}%) <span id="fee">0 تومان</span></div>
         <div class="price-row">مالیات (${taxPercent}%) <span id="tax">0 تومان</span></div>

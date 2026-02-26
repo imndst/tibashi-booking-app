@@ -62,16 +62,24 @@ export async function renderComments(ev, tabContent, page = 1) {
           }
 
           return `
-            <div class="tibashi-comment-card" data-id="${c.id}">
-              <div class="tibashi-comment-header">
-                <span>${toPersianTime(c.timeduration)}</span>
-                <span style="float:right;">${c.writer ?? "حبیب خدا"} ⭐ ${c.rating}</span>
-              </div>
-              <p class="tibashi-comment-text">${c.comment}</p>
-              <div class="tibashi-comment-actions">${actions}</div>
-              <div class="tibashi-reply-box-container">${repliesHTML}</div>
-            </div>
-          `;
+  <div class="tibashi-comment-card" data-id="${c.id}">
+    <div class="tibashi-comment-header">
+      <span>
+        ${
+          c.timeduration
+            ? toPersianTime(c.timeduration)
+            : "یک ماه گذشته"
+        }
+      </span>
+      <span style="float:right;">
+        ${c.writer ?? "خریدار"} ⭐ ${c.rating}
+      </span>
+    </div>
+    <p class="tibashi-comment-text">${c.comment}</p>
+    <div class="tibashi-comment-actions">${actions}</div>
+    <div class="tibashi-reply-box-container">${repliesHTML}</div>
+  </div>
+`;
         })
         .join("");
     }
@@ -104,16 +112,47 @@ export async function renderComments(ev, tabContent, page = 1) {
       });
 
       submitBtn.onclick = async () => {
-        const comment = tabContent.querySelector("#newComment").value.trim();
-        if (!comment || selectedRating <= 0) return showCustomAlert("لطفا نظر و امتیاز خود را وارد کنید");
-        try {
-          const result = await postComment(ev.id, comment, selectedRating);
-          if (result?.status) renderComments(ev, tabContent, 1);
-          else showCustomAlert("❌ " + result?.message);
-        } catch {
-          showCustomAlert("خطا در ارسال نظر");
-        }
-      };
+  const comment = tabContent.querySelector("#newComment").value.trim();
+  if (!comment || selectedRating <= 0) return showCustomAlert("لطفا نظر و امتیاز خود را وارد کنید");
+
+  // 🔹 اضافه کردن کامنت موقت
+  const commentsList = tabContent.querySelector(".tibashi-comments-list");
+  const tempCommentId = `temp-${Date.now()}`;
+  const tempCommentHTML = `
+    <div class="tibashi-comment-card tibashi-comment-pending" data-id="${tempCommentId}">
+      <div class="tibashi-comment-header">
+        <span>${toPersianTime(new Date())}</span>
+        <span style="float:right;">شما ⭐ ${selectedRating}</span>
+      </div>
+      <p class="tibashi-comment-text">${comment}</p>
+      <div class="tibashi-comment-actions"></div>
+      <div class="tibashi-reply-box-container">
+        <em>کامنت شما بعد از تایید منتشر می‌شود.</em>
+      </div>
+    </div>
+  `;
+  commentsList.insertAdjacentHTML("afterbegin", tempCommentHTML);
+  tabContent.querySelector("#newComment").value = "";
+
+  try {
+    const result = await postComment(ev.id, comment, selectedRating);
+
+    if (result?.status) {
+      showCustomAlert("نظر شما با موفقیت ثبت شد و پس از تایید نمایش داده می‌شود.");
+      // 🔹 در صورت تمایل می‌توانیم لیست کامل را ریفرش کنیم
+      // renderComments(ev, tabContent, 1);
+    } else {
+      showCustomAlert("❌ " + result?.message);
+      // حذف کامنت موقت در صورت خطا
+      const tempEl = commentsList.querySelector(`[data-id="${tempCommentId}"]`);
+      tempEl?.remove();
+    }
+  } catch {
+    showCustomAlert("خطا در ارسال نظر");
+    const tempEl = commentsList.querySelector(`[data-id="${tempCommentId}"]`);
+    tempEl?.remove();
+  }
+};
     }
 
     /* 💬 Reply buttons */
@@ -131,17 +170,37 @@ export async function renderComments(ev, tabContent, page = 1) {
           </div>
         `
         );
-        container.querySelector(".tibashi-submit-reply").onclick = async () => {
-          const replyText = container.querySelector(".tibashi-reply-input").value.trim();
-          if (!replyText) return showCustomAlert("لطفا پاسخ را وارد کنید");
-          try {
-            const res = await replyComment(ev.id, btn.dataset.id, replyText);
-            if (res.status) renderComments(ev, tabContent, page);
-            else showCustomAlert("❌ " + res.message);
-          } catch {
-            showCustomAlert("خطا در ثبت پاسخ");
-          }
-        };
+       container.querySelector(".tibashi-submit-reply").onclick = async () => {
+  const replyText = container.querySelector(".tibashi-reply-input").value.trim();
+  if (!replyText) return showCustomAlert("لطفا پاسخ را وارد کنید");
+
+  // 🔹 اضافه کردن reply موقت
+  const tempReplyId = `temp-reply-${Date.now()}`;
+  const tempReplyHTML = `
+    <div class="tibashi-reply-card tibashi-reply-pending" data-id="${tempReplyId}">
+      <div class="tibashi-reply-header">شما - ${toPersianTime(new Date())}</div>
+      <div class="tibashi-reply-text"><em>پاسخ شما بعد از تایید منتشر می‌شود</em></div>
+    </div>
+  `;
+  container.insertAdjacentHTML("beforeend", tempReplyHTML);
+  container.querySelector(".tibashi-reply-input").value = "";
+
+  try {
+    const res = await replyComment(ev.id, btn.dataset.id, replyText);
+    if (res.status) {
+      showCustomAlert("پاسخ شما ثبت شد و پس از تایید نمایش داده می‌شود.");
+      // renderComments(ev, tabContent, page);
+    } else {
+      showCustomAlert("❌ " + res.message);
+      const tempEl = container.querySelector(`[data-id="${tempReplyId}"]`);
+      tempEl?.remove();
+    }
+  } catch {
+    showCustomAlert("خطا در ثبت پاسخ");
+    const tempEl = container.querySelector(`[data-id="${tempReplyId}"]`);
+    tempEl?.remove();
+  }
+};
       };
     });
 

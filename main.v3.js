@@ -8,6 +8,17 @@ import { initViewPort } from "./tibashi-js-v5/events/viewPort.js";
 import { initProfiles } from "./tibashi-js-v5/profile/profiles.js";
 // import "./app.css";
 
+// Get current URL
+const currentUrl = window.location.href;
+const url = new URL(currentUrl);
+
+// Check if pathname is /e and there is a query param "m"
+if (url.pathname === "/e" && url.searchParams.has("m")) {
+  const m = url.searchParams.get("m");          // get the value of m
+  const newUrl = `${url.origin}/e/${m}`;        // build new URL
+  window.location.replace(newUrl);              // redirect to new URL
+}
+
 const routes = [
   {
     path: /^\/$/,

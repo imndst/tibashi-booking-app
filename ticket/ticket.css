@@ -25,8 +25,13 @@ button:hover { background: #45a049; }
   box-shadow: 0 6px 15px rgba(0,0,0,0.15);
   display: flex;
   flex-direction: column;
-  page-break-after: always;
+ 
   position: relative;
+    page-break-inside: avoid;  /* هیچ ticket نصفه نشود */
+  margin: 0 auto;
+  width: 100%;
+  max-width: 600px;   
+    overflow: hidden;  
 }
 
 .ticket-header { display: flex; justify-content: space-between; align-items: center; margin-bottom:10px; }
@@ -47,4 +52,48 @@ button:hover { background: #45a049; }
 
 @media(max-width:768px){
   .ticket { width: 90%; }
+}
+.buyer-code-box {
+  background-color: #000;
+  color: #fff;
+  font-size: 28px;
+  font-weight: bold;
+  text-align: center;
+  padding: 12px 0;
+  margin: 15px 0;
+  border-radius: 8px;
+  letter-spacing: 2px;
+}
+/* باکس کد خریدار */
+.buyer-code-box {
+  background: #000;
+  color: #fff;
+  font-size: 30px;
+  font-weight: 800;
+  text-align: center;
+  padding: 14px 0;
+  margin: 20px 0 10px 0;
+  border-radius: 10px;
+  letter-spacing: 3px;
+}
+
+
+/* تاریخ تراکنش پایین بلیت */
+.transaction-date {
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  margin-top: 15px;
+}
+.location-box {
+  border: 1px dashed #888;
+  padding: 8px;
+  margin: 8px 0;
+  text-align: center;
+  font-family: "Tahoma", sans-serif;
+  font-size: 0.75em;
+  color: #333;
+  border-radius: 5px;
+  background: #f9f9f9;
+  font-style: italic; /* فونت موجیک / کمی زیبا */
 }

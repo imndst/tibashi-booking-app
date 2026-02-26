@@ -20,16 +20,86 @@ export async function EventComponent(eventId) {
 
     // 🔹 Main structure
    // Inside EventComponent, replace part of app.innerHTML with this header
+// inject shimmer style once
+if (!document.getElementById("mock-banner-style")) {
+  const style = document.createElement("style");
+  style.id = "mock-banner-style";
+  style.innerHTML = `
+    .mock-banner {
+      width: 100%;
+      height: 300px;
+      position: relative;
+      background: linear-gradient(
+        90deg,
+        #2c2c2c 25%,
+        #3a3a3a 50%,
+        #2c2c2c 75%
+      );
+      background-size: 200% 100%;
+      animation: shimmer 1.6s infinite linear;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .mock-banner img {
+      max-height: 220px;
+      max-width: 60%;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+const hasBanner = event.banner && event.banner.trim() !== "";
+const hasPoster = event.src && event.src.trim() !== "";
+
+let bannerHTML;
+
+if (hasBanner) {
+  bannerHTML = `
+    <img 
+      src="${BASE_URL}${event.banner}" 
+      alt="${event.name}" 
+      style="width:100%; height:300px; object-fit:cover;">
+  `;
+} else {
+  bannerHTML = `
+    <div class="mock-banner">
+      ${
+        hasPoster
+          ? `<img src="${BASE_URL}${event.src}" alt="${event.name} poster">`
+          : ``
+      }
+    </div>
+  `;
+}
+
 app.innerHTML = `
   <div class="event-container" style="max-width:1080px; margin:auto;">
     <div class="event-header" style="position: relative; border-radius: 12px; overflow: hidden; margin-bottom: 20px;">
-      <img src="${BASE_URL}/${event.banner}" alt="${event.name}" style="width: 100%; height: 300px; object-fit: cover;">
+      
+      ${bannerHTML}
+
       <div style="position: absolute; bottom: 15px; left: 15px; color: white; text-shadow: 1px 1px 5px rgba(0,0,0,0.7);">
         <h1 style="margin:0; font-size: 2rem;">${event.name}</h1>
+
         <p style="margin:5px 0;">
-          ⭐ ${event.rate} &nbsp;&nbsp;
-          <span style="background-color:#ff6f61; padding: 2px 8px; border-radius:5px;">${event.rw}</span>
+          ⭐ ${event.rate}
+          ${
+            event.rw 
+              ? `&nbsp;&nbsp;<span style="background-color:#ff6f61; padding: 2px 8px; border-radius:5px;">${event.rw}</span>`
+              : ''
+          }
         </p>
+
         <p style="margin:0; font-size:0.9rem;">📍 ${event.location}</p>
         <p style="margin:0; font-size:0.9rem;">🎭 ${event.gne || "—"}</p>
       </div>
@@ -48,7 +118,6 @@ app.innerHTML = `
     <div id="seat-map-continer" class="seat-map-continer"></div>
   </div>
 `;
-
 
 
 
@@ -103,7 +172,7 @@ app.innerHTML = `
 // ----------- SEO Enhancements -----------
 
     // Set page <title>
-    document.title = event.name + "گیشات "|| "رویداد";
+    document.title = event.name + " " + "گیشات- " || "رویداد";
 
     // Meta description
     let descMeta = document.querySelector('meta[name="description"]');

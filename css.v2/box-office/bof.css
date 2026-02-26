@@ -166,7 +166,7 @@
     padding: 16px;
   }
   #box-office .tibashi-box-grid {
-    grid-template-columns: repeat(2, 1fr); /* ✅ two per row on mobile */
+    grid-template-columns: repeat(1, 1fr); /* ✅ two per row on mobile */
     gap: 12px;
   }
   #box-office .tibashi-box-name {

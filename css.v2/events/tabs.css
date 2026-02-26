@@ -71,14 +71,14 @@
 .tibashi-rating-stars .star {
   font-size: 20px;
   cursor: pointer;
-  color: var(--color-border);
+  color: #ff4114;
   transition: color 0.2s ease;
 }
 
 .tibashi-rating-stars .star.filled,
 .tibashi-rating-stars .star:hover,
 .tibashi-rating-stars .star:hover ~ .star {
-  color: #FFD700; /* golden star */
+  color: #f02a2a; /* golden star */
 }
 
 /* Login link */
