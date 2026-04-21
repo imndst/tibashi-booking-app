@@ -1,3 +1,7 @@
 dist/
 node_modules/
 tibashi-asset/
+ node_modules/
+.env
+dist/
+build/
